@@ -932,7 +932,7 @@ button.color-editor-target:focus-visible {
   justify-self: start;
   margin: 0 0 10px;
   padding: 0;
-  min-height: 72px;
+  min-height: 108px;
   text-align: left;
   border: 1px solid rgba(151, 183, 207, 0.34);
   border-radius: 12px;
@@ -964,7 +964,7 @@ button.color-editor-target:focus-visible {
   right: 10px;
   bottom: 8px;
   margin: 0;
-  font-size: 0.74rem;
+  font-size: 0.9rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -977,10 +977,9 @@ button.color-editor-target:focus-visible {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   width: 100%;
   height: 100%;
-  min-height: 72px;
+  min-height: 108px;
   gap: 0;
-  filter: saturate(0.25);
-  transition: filter 0.2s ease;
+  filter: none;
 }
 
 .theme-card-palette--full {
@@ -997,7 +996,7 @@ button.color-editor-target:focus-visible {
 .theme-card-swatch {
   width: 100%;
   height: 100%;
-  min-height: 72px;
+  min-height: 108px;
   border-right: 1px solid rgba(214, 233, 247, 0.16);
   box-shadow: none;
 }
@@ -2406,6 +2405,35 @@ button.location-clear-btn:focus-visible {
   .theme-edit-header {
     align-items: center;
     flex-direction: row;
+  }
+
+  .theme-card-list {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .theme-card-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .theme-card-list .theme-card {
+    margin: 0;
+    flex: 0 0 min(72vw, 280px);
+    width: min(72vw, 280px);
+    min-height: 144px;
+    scroll-snap-align: start;
+    filter: brightness(0.75);
+  }
+
+  .theme-card-list .theme-card .theme-card-palette,
+  .theme-card-list .theme-card .theme-card-swatch {
+    min-height: 144px;
   }
 
   .theme-edit-actions {

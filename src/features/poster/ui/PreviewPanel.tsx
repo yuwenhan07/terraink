@@ -140,7 +140,9 @@ export default function PreviewPanel() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    const mediaQuery = window.matchMedia(
+      "(max-width: 768px), (hover: none) and (pointer: coarse)",
+    );
     const syncViewport = () => setIsMobileViewport(mediaQuery.matches);
     syncViewport();
     mediaQuery.addEventListener("change", syncViewport);
