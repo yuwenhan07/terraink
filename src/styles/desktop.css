@@ -776,6 +776,15 @@
     flex-wrap: nowrap;
   }
 
+  .app-shell > .preview-panel .poster-frame .map-controls > .map-control-hint {
+    position: absolute;
+    top: 50%;
+    left: calc(100% + 10px);
+    transform: translateY(-50%);
+    white-space: nowrap;
+    margin: 0;
+  }
+
   /* Desktop settings info summary card on right side */
   .app-shell > .preview-panel .settings-info-card {
     display: grid;

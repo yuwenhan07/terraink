@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePosterContext } from "@/features/poster/ui/PosterContext";
 import type {
   MarkerDefaults,
@@ -12,11 +13,19 @@ import {
 } from "@/features/markers/infrastructure/helpers";
 import { findMarkerIcon } from "@/features/markers/infrastructure/iconRegistry";
 import {
+  DEFAULT_MARKER_SIZE,
   MAX_MARKER_SIZE,
   MIN_MARKER_SIZE,
 } from "@/features/markers/infrastructure/constants";
 import MarkerVisual from "./MarkerVisual";
-import { CheckIcon, EditIcon, InfoIcon, TrashIcon } from "@/shared/ui/Icons";
+import {
+  CheckIcon,
+  EditIcon,
+  GearIcon,
+  InfoIcon,
+  RotateLeftIcon,
+  TrashIcon,
+} from "@/shared/ui/Icons";
 import ColorPicker from "@/features/theme/ui/ColorPicker";
 import { buildDynamicColorChoices } from "@/features/theme/domain/colorSuggestions";
 import {
@@ -48,6 +57,63 @@ function formatCoordinate(value: number) {
   return Number(value).toFixed(6);
 }
 
+function DeleteAllMarkersModal({
+  markerCount,
+  onCancel,
+  onConfirm,
+}: {
+  markerCount: number;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return createPortal(
+    <div
+      className="picker-modal-backdrop"
+      role="presentation"
+      onClick={onCancel}
+    >
+      <div
+        className="picker-modal marker-delete-confirm-modal"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="marker-delete-modal-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="marker-delete-modal-body">
+          <p
+            className="marker-delete-modal-headline"
+            id="marker-delete-modal-title"
+          >
+            Delete all markers?
+          </p>
+          <p className="marker-delete-modal-text">
+            This will remove {markerCount} marker{markerCount === 1 ? "" : "s"}{" "}
+            from the map.
+          </p>
+          <div className="marker-delete-modal-actions">
+            <button
+              type="button"
+              className="marker-delete-modal-cancel"
+              onClick={onCancel}
+            >
+              Keep markers
+            </button>
+            <button
+              type="button"
+              className="marker-delete-modal-confirm"
+              onClick={onConfirm}
+            >
+              <TrashIcon />
+              Delete all markers
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 export default function MarkersSection() {
   const { state, dispatch, mapRef, effectiveTheme } = usePosterContext();
   const { form, markers, customMarkerIcons, markerDefaults, isMarkerEditorActive } =
@@ -59,8 +125,10 @@ export default function MarkersSection() {
     string | null
   >(null);
   const [expandedMarkerId, setExpandedMarkerId] = useState<string | null>(null);
+  const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
   const markerThemeColor = effectiveTheme.ui.text;
   const hasActiveMarkerEdit = Boolean(expandedMarkerId);
+  const hasMarkers = markers.length > 0;
 
   const toggleMarkerEditor = useCallback((markerId: string) => {
     setExpandedMarkerId((current) => (current === markerId ? null : markerId));
@@ -179,8 +247,35 @@ export default function MarkersSection() {
     setIsDefaultColorPickerOpen((current) => !current);
   }, []);
 
+  const handleResetMarkers = useCallback(() => {
+    dispatch({
+      type: "SET_MARKER_DEFAULTS",
+      defaults: { size: DEFAULT_MARKER_SIZE, color: markerThemeColor },
+      applyToMarkers: true,
+    });
+  }, [dispatch, markerThemeColor]);
+
+  const handleDeleteAllMarkers = useCallback(() => {
+    if (markers.length > 0) {
+      setIsDeleteAllModalOpen(true);
+    }
+  }, [markers.length]);
+
   return (
     <section className="panel-block color-editor-screen marker-settings-screen">
+      {isDeleteAllModalOpen ? (
+        <DeleteAllMarkersModal
+          markerCount={markers.length}
+          onCancel={() => setIsDeleteAllModalOpen(false)}
+          onConfirm={() => {
+            dispatch({ type: "CLEAR_MARKERS" });
+            setExpandedMarkerId(null);
+            setOpenMarkerColorPickerId(null);
+            setIsDeleteAllModalOpen(false);
+          }}
+        />
+      ) : null}
+
       <div className="markers-section-head">
         <p className="section-summary-label">MARKERS</p>
         <div className="markers-section-head-actions">
@@ -191,7 +286,7 @@ export default function MarkersSection() {
             aria-label={isSettingsOpen ? "Done with marker settings" : "Open marker settings"}
           >
             <span className="theme-customize-icon" aria-hidden="true">
-              {isSettingsOpen ? <CheckIcon /> : <EditIcon />}
+              {isSettingsOpen ? <CheckIcon /> : <GearIcon />}
             </span>
           </button>
           <div className="marker-info-wrap marker-info-wrap--top">
@@ -502,6 +597,29 @@ export default function MarkersSection() {
             })}
           </div>
         )}
+
+        {hasMarkers ? (
+          <div className="markers-section__actions">
+            <button
+              type="button"
+              className="marker-row__icon-btn"
+              onClick={handleResetMarkers}
+              title="Reset all markers"
+            >
+              <RotateLeftIcon />
+              <span className="marker-row__icon-btn-label">Reset Markers</span>
+            </button>
+            <button
+              type="button"
+              className="marker-row__icon-btn marker-row__icon-btn--danger"
+              onClick={handleDeleteAllMarkers}
+              title="Delete all markers"
+            >
+              <TrashIcon />
+              <span className="marker-row__icon-btn-label">Delete All Markers</span>
+            </button>
+          </div>
+        ) : null}
       </div>
     </section>
   );

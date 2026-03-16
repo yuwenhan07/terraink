@@ -21,6 +21,7 @@ export { FaRegCircleCheck as FinishIcon } from "react-icons/fa6";
 export { FiLock as LockIcon } from "react-icons/fi";
 export { FiUnlock as UnlockIcon } from "react-icons/fi";
 export { FiSettings as SettingsIcon } from "react-icons/fi";
+export { FaGear as GearIcon } from "react-icons/fa6";
 export { MdOutlineFilterCenterFocus as RecenterIcon } from "react-icons/md";
 export { FiRotateCw as RotateIcon } from "react-icons/fi";
 export { FiRotateCcw as RotateLeftIcon } from "react-icons/fi";

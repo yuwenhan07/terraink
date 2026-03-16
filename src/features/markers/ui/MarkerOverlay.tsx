@@ -4,6 +4,8 @@ import type { MapInstanceRef } from "@/features/map/domain/types";
 import { MAP_OVERZOOM_SCALE } from "@/features/map/infrastructure/constants";
 import { findMarkerIcon } from "@/features/markers/infrastructure/iconRegistry";
 import MarkerVisual from "./MarkerVisual";
+import { MAX_MARKER_SIZE, MIN_MARKER_SIZE } from "@/features/markers/infrastructure/constants";
+import { clamp } from "@/shared/geo/math";
 
 interface MarkerOverlayProps {
   markers: MarkerItem[];
@@ -11,6 +13,7 @@ interface MarkerOverlayProps {
   mapRef: MapInstanceRef;
   isMarkerEditMode?: boolean;
   onMarkerPositionChange?: (markerId: string, lat: number, lon: number) => void;
+  onMarkerSizeChange?: (markerId: string, size: number) => void;
 }
 
 export default function MarkerOverlay({
@@ -19,10 +22,25 @@ export default function MarkerOverlay({
   mapRef,
   isMarkerEditMode = false,
   onMarkerPositionChange,
+  onMarkerSizeChange,
 }: MarkerOverlayProps) {
+  const KEYBOARD_RESIZE_STEP = 3;
   const [, setRenderTick] = useState(0);
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const [draggingMarkerId, setDraggingMarkerId] = useState<string | null>(null);
+  const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
+  const [isTouchSelectionActive, setIsTouchSelectionActive] = useState(false);
+  const [touchResizeState, setTouchResizeState] = useState<{
+    markerId: string;
+    startDistance: number;
+    startSize: number;
+  } | null>(null);
+  const getTouchDistance = (touches: TouchList): number => {
+    if (touches.length < 2) return 0;
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.hypot(dx, dy);
+  };
   const map = mapRef.current;
   const projectedMarkers = map
     ? markers.flatMap((marker) => {
@@ -87,24 +105,137 @@ export default function MarkerOverlay({
 
       event.preventDefault();
       event.stopPropagation();
+      setSelectedMarkerId(markerId);
+
+      if (event.pointerType === "touch") {
+        setIsTouchSelectionActive(true);
+        return;
+      }
+      setIsTouchSelectionActive(false);
 
       setDraggingMarkerId(markerId);
       updateMarkerByClientPoint(markerId, event.clientX, event.clientY);
     },
-    [isMarkerEditMode, onMarkerPositionChange, updateMarkerByClientPoint],
+    [
+      isMarkerEditMode,
+      onMarkerPositionChange,
+      updateMarkerByClientPoint,
+    ],
+  );
+
+  const handleMarkerTouchStart = useCallback(
+    (event: React.TouchEvent<HTMLDivElement>, markerId: string, markerSize: number) => {
+      if (
+        !isMarkerEditMode ||
+        !onMarkerSizeChange ||
+        event.touches.length < 2 ||
+        !isTouchSelectionActive ||
+        selectedMarkerId !== markerId
+      ) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      setTouchResizeState({
+        markerId,
+        startDistance: getTouchDistance(event.touches),
+        startSize: markerSize,
+      });
+    },
+    [isMarkerEditMode, isTouchSelectionActive, onMarkerSizeChange, selectedMarkerId],
   );
 
   useEffect(() => {
-    if (!draggingMarkerId || !isMarkerEditMode || !onMarkerPositionChange) {
+    if (!touchResizeState || !onMarkerSizeChange) {
+      return;
+    }
+
+    const handleTouchMove = (event: TouchEvent) => {
+      if (event.touches.length < 2) {
+        return;
+      }
+      event.preventDefault();
+      if (touchResizeState.startDistance <= 0) {
+        return;
+      }
+      const nextDistance = getTouchDistance(event.touches as TouchList);
+      const nextSize = clamp(
+        touchResizeState.startSize * (nextDistance / touchResizeState.startDistance),
+        MIN_MARKER_SIZE,
+        MAX_MARKER_SIZE,
+      );
+      onMarkerSizeChange(touchResizeState.markerId, nextSize);
+    };
+
+    const handleTouchEnd = (event: TouchEvent) => {
+      if (event.touches.length < 2) {
+        setTouchResizeState(null);
+      }
+    };
+
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("touchend", handleTouchEnd);
+    window.addEventListener("touchcancel", handleTouchEnd);
+
+    return () => {
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener("touchcancel", handleTouchEnd);
+    };
+  }, [onMarkerSizeChange, touchResizeState]);
+
+  const handleMarkerTouchEnd = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    if (event.touches.length === 0) {
+      setTouchResizeState(null);
+      setIsTouchSelectionActive(false);
+    }
+  }, []);
+
+  const handleMarkerWheel = useCallback(
+    (event: React.WheelEvent<HTMLDivElement>, markerId: string, markerSize: number) => {
+      if (!isMarkerEditMode || !onMarkerSizeChange || selectedMarkerId !== markerId) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      const direction = event.deltaY > 0 ? -1 : 1;
+      const nextSize = clamp(markerSize + direction, MIN_MARKER_SIZE, MAX_MARKER_SIZE);
+      onMarkerSizeChange(markerId, nextSize);
+    },
+    [isMarkerEditMode, onMarkerSizeChange, selectedMarkerId],
+  );
+
+  const handleOverlayWheel = useCallback(
+    (event: React.WheelEvent<HTMLDivElement>) => {
+      if (!isMarkerEditMode || !onMarkerSizeChange || !selectedMarkerId) {
+        return;
+      }
+      const marker = markers.find((item) => item.id === selectedMarkerId);
+      if (!marker) {
+        return;
+      }
+      event.preventDefault();
+      const direction = event.deltaY > 0 ? -1 : 1;
+      const nextSize = clamp(marker.size + direction, MIN_MARKER_SIZE, MAX_MARKER_SIZE);
+      onMarkerSizeChange(marker.id, nextSize);
+    },
+    [isMarkerEditMode, markers, onMarkerSizeChange, selectedMarkerId],
+  );
+
+  useEffect(() => {
+    if (!draggingMarkerId || !isMarkerEditMode) {
       return;
     }
 
     const handlePointerMove = (event: PointerEvent) => {
-      updateMarkerByClientPoint(draggingMarkerId, event.clientX, event.clientY);
+      if (draggingMarkerId && onMarkerPositionChange) {
+        updateMarkerByClientPoint(draggingMarkerId, event.clientX, event.clientY);
+      }
     };
 
     const stopDrag = () => {
       setDraggingMarkerId(null);
+      setTouchResizeState(null);
     };
 
     window.addEventListener("pointermove", handlePointerMove);
@@ -127,7 +258,64 @@ export default function MarkerOverlay({
     if (!isMarkerEditMode && draggingMarkerId) {
       setDraggingMarkerId(null);
     }
+    if (!isMarkerEditMode) {
+      setSelectedMarkerId(null);
+      setTouchResizeState(null);
+      setIsTouchSelectionActive(false);
+    }
   }, [isMarkerEditMode, draggingMarkerId]);
+
+  useEffect(() => {
+    if (!isMarkerEditMode || !isTouchSelectionActive || !selectedMarkerId) {
+      return;
+    }
+
+    const { overflow, touchAction } = document.body.style;
+    const {
+      overflow: htmlOverflow,
+      touchAction: htmlTouchAction,
+    } = document.documentElement.style;
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+    document.documentElement.style.overflow = "hidden";
+    document.documentElement.style.touchAction = "none";
+
+    return () => {
+      document.body.style.overflow = overflow;
+      document.body.style.touchAction = touchAction;
+      document.documentElement.style.overflow = htmlOverflow;
+      document.documentElement.style.touchAction = htmlTouchAction;
+    };
+  }, [isMarkerEditMode, isTouchSelectionActive, selectedMarkerId]);
+
+  useEffect(() => {
+    if (!isMarkerEditMode || !selectedMarkerId || !onMarkerSizeChange) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const isPlus = event.key === "+" || event.key === "=";
+      const isMinus = event.key === "-" || event.key === "_";
+      if (!isPlus && !isMinus) {
+        return;
+      }
+      const marker = markers.find((item) => item.id === selectedMarkerId);
+      if (!marker) {
+        return;
+      }
+      event.preventDefault();
+      const isDesktopInput = !window.matchMedia(
+        "(hover: none) and (pointer: coarse)",
+      ).matches;
+      const step = isDesktopInput ? KEYBOARD_RESIZE_STEP : 1;
+      const delta = isPlus ? step : -step;
+      const nextSize = clamp(marker.size + delta, MIN_MARKER_SIZE, MAX_MARKER_SIZE);
+      onMarkerSizeChange(marker.id, nextSize);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isMarkerEditMode, markers, onMarkerSizeChange, selectedMarkerId]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -163,15 +351,26 @@ export default function MarkerOverlay({
       ref={overlayRef}
       className={`poster-marker-overlay${isMarkerEditMode ? " is-edit-mode" : ""}`}
       aria-hidden={!isMarkerEditMode ? "true" : undefined}
+      onWheel={handleOverlayWheel}
     >
       {projectedMarkers.map(({ marker, icon, x, y }) => (
         <div
           key={marker.id}
           className={`poster-marker${isMarkerEditMode ? " is-draggable" : ""}${
             draggingMarkerId === marker.id ? " is-dragging" : ""
+          }${selectedMarkerId === marker.id ? " is-selected" : ""}${
+            touchResizeState?.markerId === marker.id ? " is-resizing" : ""
           }`}
           style={{ left: `${x}px`, top: `${y}px` }}
-          onPointerDown={(event) => handleMarkerPointerDown(event, marker.id)}
+          onPointerDown={(event) =>
+            handleMarkerPointerDown(event, marker.id)
+          }
+          onWheel={(event) => handleMarkerWheel(event, marker.id, marker.size)}
+          onTouchStart={(event) =>
+            handleMarkerTouchStart(event, marker.id, marker.size)
+          }
+          onTouchEnd={handleMarkerTouchEnd}
+          onTouchCancel={handleMarkerTouchEnd}
         >
           <MarkerVisual icon={icon} size={marker.size} color={marker.color} />
         </div>

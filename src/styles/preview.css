@@ -96,6 +96,8 @@
 
 .poster-marker-overlay.is-edit-mode {
   pointer-events: auto;
+  touch-action: none;
+  overscroll-behavior: contain;
 }
 
 .poster-marker {
@@ -112,6 +114,10 @@
 
 .poster-marker.is-draggable.is-dragging {
   cursor: grabbing;
+}
+
+.poster-marker.is-selected {
+  filter: drop-shadow(0 0 8px rgba(94, 206, 255, 0.75));
 }
 
 .poster-city {
@@ -208,7 +214,7 @@
 
 .map-control-group {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
   gap: 6px;
   align-items: center;
@@ -310,6 +316,16 @@
   background: rgba(55, 171, 203, 0.38);
 }
 
+.map-control-btn--mode {
+  min-width: 120px;
+  justify-content: center;
+}
+
+.map-control-btn--marker-toggle {
+  min-width: 150px;
+  justify-content: center;
+}
+
 .map-control-btn.is-active {
   background: rgba(55, 171, 203, 0.34);
   border-color: rgba(55, 171, 203, 0.8);
@@ -406,12 +422,19 @@
 @media (max-width: 700px) {
   .map-control-group {
     width: 100%;
+    flex-wrap: wrap;
   }
 
   .map-control-btn {
     min-height: 38px;
     padding: 8px 10px;
     font-size: 0.74rem;
+  }
+
+  .map-control-btn--mode,
+  .map-control-btn--marker-toggle {
+    min-width: 0;
+    justify-content: flex-start;
   }
 
   .map-control-hint {

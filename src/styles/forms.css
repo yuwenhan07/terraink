@@ -1548,6 +1548,18 @@ button.marker-info-btn:focus-visible {
   gap: 10px;
 }
 
+.markers-section__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.markers-section__actions .marker-row__icon-btn {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
 button.marker-delete-all-btn {
   width: 100%;
   margin: 0;

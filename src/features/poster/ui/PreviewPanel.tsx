@@ -5,7 +5,6 @@ import {
   useState,
   type CSSProperties,
 } from "react";
-import { createPortal } from "react-dom";
 import { usePosterContext } from "./PosterContext";
 import { useMapSync } from "@/features/map/application/useMapSync";
 import MapPreview from "@/features/map/ui/MapPreview";
@@ -13,20 +12,14 @@ import MarkerOverlay from "@/features/markers/ui/MarkerOverlay";
 import GradientFades from "./GradientFades";
 import PosterTextOverlay from "./PosterTextOverlay";
 import SettingsInfo from "./SettingsInfo";
+import MapPrimaryControls from "./MapPrimaryControls";
 import {
-  EditIcon,
-  FinishIcon,
   PlusIcon,
   MinusIcon,
   RotateIcon,
   RotateLeftIcon,
   RotateRightIcon,
-  LockIcon,
-  UnlockIcon,
-  RecenterIcon,
-  TrashIcon,
 } from "@/shared/ui/Icons";
-import { DEFAULT_MARKER_SIZE } from "@/features/markers/infrastructure/constants";
 import {
   MAP_BUTTON_ZOOM_DURATION_MS,
   MAP_BUTTON_ZOOM_STEP,
@@ -56,63 +49,6 @@ const CONTINENT_VIEW_ZOOM_LEVEL = 6;
 const DEFAULT_LOCATION_LABEL =
   "Hanover, Region Hannover, Lower Saxony, Germany";
 
-function DeleteAllMarkersModal({
-  markerCount,
-  onCancel,
-  onConfirm,
-}: {
-  markerCount: number;
-  onCancel: () => void;
-  onConfirm: () => void;
-}) {
-  return createPortal(
-    <div
-      className="picker-modal-backdrop"
-      role="presentation"
-      onClick={onCancel}
-    >
-      <div
-        className="picker-modal marker-delete-confirm-modal"
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="marker-delete-modal-title"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="marker-delete-modal-body">
-          <p
-            className="marker-delete-modal-headline"
-            id="marker-delete-modal-title"
-          >
-            Delete all markers?
-          </p>
-          <p className="marker-delete-modal-text">
-            This will remove {markerCount} marker{markerCount === 1 ? "" : "s"}{" "}
-            from the map.
-          </p>
-          <div className="marker-delete-modal-actions">
-            <button
-              type="button"
-              className="marker-delete-modal-cancel"
-              onClick={onCancel}
-            >
-              Keep markers
-            </button>
-            <button
-              type="button"
-              className="marker-delete-modal-confirm"
-              onClick={onConfirm}
-            >
-              <TrashIcon />
-              Delete all markers
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>,
-    document.body,
-  );
-}
-
 export default function PreviewPanel() {
   const { state, dispatch, effectiveTheme, mapStyle, mapRef } =
     usePosterContext();
@@ -134,7 +70,6 @@ export default function PreviewPanel() {
   const [isEditing, setIsEditing] = useState(false);
   const [mapBearing, setMapBearing] = useState(0);
   const [isRotationEnabled, setIsRotationEnabled] = useState(false);
-  const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
 
   useEffect(() => {
@@ -407,6 +342,13 @@ export default function PreviewPanel() {
       });
   }, [mapRef, selectedLocation, userLocation, dispatch]);
 
+  const handleToggleMarkerEditing = useCallback(() => {
+    dispatch({
+      type: "SET_MARKER_EDITOR_ACTIVE",
+      active: !isMarkerEditorActive,
+    });
+  }, [dispatch, isMarkerEditorActive]);
+
   const handleMarkerPositionChange = useCallback(
     (markerId: string, lat: number, lon: number) => {
       dispatch({
@@ -418,43 +360,22 @@ export default function PreviewPanel() {
     [dispatch],
   );
 
-  const handleToggleMarkerEditing = useCallback(() => {
-    dispatch({
-      type: "SET_MARKER_EDITOR_ACTIVE",
-      active: !isMarkerEditorActive,
-    });
-  }, [dispatch, isMarkerEditorActive]);
-
-  const handleResetMarkers = useCallback(() => {
-    dispatch({
-      type: "SET_MARKER_DEFAULTS",
-      defaults: {
-        size: DEFAULT_MARKER_SIZE,
-        color: effectiveTheme.ui.text,
-      },
-      applyToMarkers: true,
-    });
-  }, [dispatch, effectiveTheme.ui.text]);
-
-  const handleDeleteAllMarkers = useCallback(() => {
-    if (state.markers.length > 0) {
-      setIsDeleteAllModalOpen(true);
-    }
-  }, [state.markers.length]);
+  const handleMarkerSizeChange = useCallback(
+    (markerId: string, size: number) => {
+      dispatch({
+        type: "UPDATE_MARKER",
+        markerId,
+        changes: { size },
+      });
+    },
+    [dispatch],
+  );
+  const markerResizeHint = isMobileViewport
+    ? "Tip: tap marker, then use 2 fingers to resize."
+    : "Tip: select a marker, then use mouse wheel or +/- keys.";
 
   return (
     <section className="preview-panel">
-      {isDeleteAllModalOpen ? (
-        <DeleteAllMarkersModal
-          markerCount={state.markers.length}
-          onCancel={() => setIsDeleteAllModalOpen(false)}
-          onConfirm={() => {
-            dispatch({ type: "CLEAR_MARKERS" });
-            setIsDeleteAllModalOpen(false);
-          }}
-        />
-      ) : null}
-
       <div className="poster-viewport">
         {/* Desktop ghost map: full-bleed map behind the poster frame at reduced opacity */}
         <div className="poster-ghost-layer" aria-hidden="true">
@@ -506,6 +427,7 @@ export default function PreviewPanel() {
               mapRef={mapRef}
               isMarkerEditMode={isMarkerEditorActive}
               onMarkerPositionChange={handleMarkerPositionChange}
+              onMarkerSizeChange={handleMarkerSizeChange}
             />
           ) : null}
           <PosterTextOverlay
@@ -525,83 +447,41 @@ export default function PreviewPanel() {
             {!isEditing ? (
               <>
                 <div className="map-control-group">
-                  {!isMarkerEditorActive ? (
-                    <>
-                      <button
-                        type="button"
-                        className="map-control-btn"
-                        onClick={handleRecenter}
-                        title={RECENTER_HINT}
-                      >
-                        <RecenterIcon />
-                        <span>Recenter</span>
-                      </button>
-                      <button
-                        type="button"
-                        className="map-control-btn map-control-btn--primary"
-                        onClick={handleStartEditing}
-                        title={UNLOCK_HINT}
-                      >
-                        <UnlockIcon />
-                        <span>Edit Map</span>
-                      </button>
-                    </>
-                  ) : null}
-                  <button
-                    type="button"
-                    className={`map-control-btn${isMarkerEditorActive ? " is-active" : ""}`}
-                    onClick={handleToggleMarkerEditing}
-                    disabled={!isMarkerEditorActive && state.markers.length === 0}
-                  >
-                    {isMarkerEditorActive ? <FinishIcon /> : <EditIcon />}
-                    <span>{isMarkerEditorActive ? "Done" : "Edit Markers"}</span>
-                  </button>
-                  {isMarkerEditorActive ? (
-                    <button
-                      type="button"
-                      className="map-control-btn map-control-btn--marker-reset"
-                      onClick={handleResetMarkers}
-                      title="Reset marker defaults"
-                    >
-                      <RotateLeftIcon />
-                      <span>Reset Markers</span>
-                    </button>
-                  ) : null}
-                  {isMarkerEditorActive ? (
-                    <button
-                      type="button"
-                      className="map-control-btn map-control-btn--danger"
-                      onClick={handleDeleteAllMarkers}
-                      title="Delete all markers"
-                      disabled={state.markers.length === 0}
-                    >
-                      <TrashIcon />
-                      <span>Delete Markers</span>
-                    </button>
-                  ) : null}
+                  <MapPrimaryControls
+                    isMapEditing={false}
+                    isMarkerEditorActive={isMarkerEditorActive}
+                    hasMarkers={state.markers.length > 0}
+                    recenterHint={RECENTER_HINT}
+                    unlockHint={UNLOCK_HINT}
+                    onRecenter={handleRecenter}
+                    onStartEditing={handleStartEditing}
+                    onFinishEditing={handleFinishEditing}
+                    onToggleMarkerEditing={handleToggleMarkerEditing}
+                  />
                 </div>
+                {isMarkerEditorActive ? (
+                  <p className="map-control-hint">{markerResizeHint}</p>
+                ) : null}
               </>
             ) : (
               <>
                 <div className="map-control-group">
-                  <button
-                    type="button"
-                    className="map-control-btn"
-                    onClick={handleRecenter}
-                    title={RECENTER_HINT}
-                  >
-                    <RecenterIcon />
-                    <span>Recenter</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="map-control-btn map-control-btn--primary"
-                    onClick={handleFinishEditing}
-                    title="Lock map editing"
-                  >
-                    <LockIcon />
-                    <span>Lock Map</span>
-                  </button>
+                  <MapPrimaryControls
+                    isMapEditing
+                    isMarkerEditorActive={isMarkerEditorActive}
+                    hasMarkers={state.markers.length > 0}
+                    recenterHint={RECENTER_HINT}
+                    unlockHint={UNLOCK_HINT}
+                    onRecenter={handleRecenter}
+                    onStartEditing={handleStartEditing}
+                    onFinishEditing={handleFinishEditing}
+                    onToggleMarkerEditing={handleToggleMarkerEditing}
+                  />
+                </div>
+                {isMarkerEditorActive ? (
+                  <p className="map-control-hint">{markerResizeHint}</p>
+                ) : null}
+                <div className="map-control-group">
                   <button
                     type="button"
                     className={`map-control-btn${isRotationEnabled ? " is-active" : ""}`}
