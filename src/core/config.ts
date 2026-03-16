@@ -9,7 +9,7 @@ export const DEFAULT_POSTER_WIDTH_CM = 20;
 export const DEFAULT_POSTER_HEIGHT_CM = 30;
 export const LAYOUT_MATCH_TOLERANCE_CM = 0.01;
 
-export const MIN_DISTANCE_METERS = 1_000;
+export const MIN_DISTANCE_METERS = 100;
 export const MAX_DISTANCE_METERS = 20_000_000;
 export const DEFAULT_DISTANCE_METERS = 4_000;
 
