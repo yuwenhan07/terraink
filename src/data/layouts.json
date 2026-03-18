@@ -236,6 +236,16 @@
           "unit": "px",
           "posterWidthCm": 22.49,
           "posterHeightCm": 30
+        },
+        {
+          "id": "wallpaper_xteink_x4",
+          "name": "Xteink X4 (E-Ink)",
+          "description": "Native Xteink X4 format (480x800). Exports exactly at this resolution when using 300 DPI.",
+          "width": 480,
+          "height": 800,
+          "unit": "px",
+          "posterWidthCm": 4.06,
+          "posterHeightCm": 6.77
         }
       ]
     },
