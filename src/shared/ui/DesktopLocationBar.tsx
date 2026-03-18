@@ -7,6 +7,10 @@ import { reverseGeocodeCoordinates } from "@/core/services";
 import { DEFAULT_DISTANCE_METERS } from "@/core/config";
 import { GEOLOCATION_TIMEOUT_MS } from "@/features/map/infrastructure";
 import {
+  getGeolocationFailureMessage,
+  requestCurrentPositionWithRetry,
+} from "@/features/location/infrastructure";
+import {
   PLACEHOLDER_LOCATION_SEARCH,
   PLACEHOLDER_EXAMPLE_LATITUDE,
   PLACEHOLDER_EXAMPLE_LONGITUDE,
@@ -48,9 +52,9 @@ export default function DesktopLocationBar() {
   };
 
   const handleUseCurrentLocation = () => {
-    if (!navigator.geolocation || isLocatingUser) return;
+    if (isLocatingUser) return;
 
-    const applyLocation = (lat: number, lon: number) => {
+    const applyLocation = async (lat: number, lon: number) => {
       setLocationPermissionMessage("");
       flyToLocation(lat, lon);
       dispatch({
@@ -62,61 +66,56 @@ export default function DesktopLocationBar() {
           distance: String(DEFAULT_DISTANCE_METERS),
         },
       });
-      void reverseGeocodeCoordinates(lat, lon)
-        .then((resolved) => {
-          dispatch({
-            type: "SET_FORM_FIELDS",
-            resetDisplayNameOverrides: true,
-            fields: {
-              location: resolved.label,
-              displayCity: String(resolved.city ?? "").trim(),
-              displayCountry: String(resolved.country ?? "").trim(),
-              displayContinent: String(resolved.continent ?? "").trim(),
-            },
-          });
-          dispatch({ type: "SET_USER_LOCATION", location: resolved });
-        })
-        .catch(() => {
-          const fallback: SearchResult = {
-            id: `user:${lat.toFixed(6)},${lon.toFixed(6)}`,
-            label: `${lat.toFixed(6)}, ${lon.toFixed(6)}`,
-            city: "",
-            country: "",
-            continent: "",
-            lat,
-            lon,
-          };
-          dispatch({
-            type: "SET_FORM_FIELDS",
-            resetDisplayNameOverrides: true,
-            fields: { location: fallback.label },
-          });
-          dispatch({ type: "SET_USER_LOCATION", location: fallback });
-        })
-        .finally(() => setIsLocatingUser(false));
-    };
-
-    const requestPosition = (retry = false) => {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => applyLocation(pos.coords.latitude, pos.coords.longitude),
-        (err) => {
-          if (!retry) {
-            requestPosition(true);
-          } else {
-            setLocationPermissionMessage(
-              err?.code === 1
-                ? "Location access is blocked. Enable it in your browser settings."
-                : "Could not get your location. Please try again.",
-            );
-            setIsLocatingUser(false);
-          }
-        },
-        { enableHighAccuracy: retry, timeout: GEOLOCATION_TIMEOUT_MS, maximumAge: 0 },
-      );
+      try {
+        const resolved = await reverseGeocodeCoordinates(lat, lon);
+        dispatch({
+          type: "SET_FORM_FIELDS",
+          resetDisplayNameOverrides: true,
+          fields: {
+            location: resolved.label,
+            displayCity: String(resolved.city ?? "").trim(),
+            displayCountry: String(resolved.country ?? "").trim(),
+            displayContinent: String(resolved.continent ?? "").trim(),
+          },
+        });
+        dispatch({ type: "SET_USER_LOCATION", location: resolved });
+      } catch {
+        const fallback: SearchResult = {
+          id: `user:${lat.toFixed(6)},${lon.toFixed(6)}`,
+          label: `${lat.toFixed(6)}, ${lon.toFixed(6)}`,
+          city: "",
+          country: "",
+          continent: "",
+          lat,
+          lon,
+        };
+        dispatch({
+          type: "SET_FORM_FIELDS",
+          resetDisplayNameOverrides: true,
+          fields: { location: fallback.label },
+        });
+        dispatch({ type: "SET_USER_LOCATION", location: fallback });
+      }
     };
 
     setIsLocatingUser(true);
-    requestPosition(false);
+    void (async () => {
+      const positionResult = await requestCurrentPositionWithRetry({
+        timeoutMs: GEOLOCATION_TIMEOUT_MS,
+        maxAttempts: 2,
+      });
+
+      if (!positionResult.ok) {
+        setLocationPermissionMessage(
+          getGeolocationFailureMessage(positionResult.reason),
+        );
+        setIsLocatingUser(false);
+        return;
+      }
+
+      await applyLocation(positionResult.lat, positionResult.lon);
+      setIsLocatingUser(false);
+    })();
   };
 
   return (

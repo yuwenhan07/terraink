@@ -30,6 +30,10 @@ import {
 import { reverseGeocodeCoordinates } from "@/core/services";
 import { GEOLOCATION_TIMEOUT_MS } from "@/features/map/infrastructure";
 import type { SearchResult } from "@/features/location/domain/types";
+import {
+  getGeolocationFailureMessage,
+  requestCurrentPositionWithRetry,
+} from "@/features/location/infrastructure";
 
 type SectionId =
   | "location"
@@ -102,9 +106,9 @@ export default function SettingsPanel() {
   };
 
   const handleUseCurrentLocation = () => {
-    if (!navigator.geolocation || isLocatingUser) return;
+    if (isLocatingUser) return;
 
-    const applyLocation = (lat: number, lon: number) => {
+    const applyLocation = async (lat: number, lon: number) => {
       setLocationPermissionMessage("");
       flyToLocation(lat, lon);
       dispatch({
@@ -116,75 +120,58 @@ export default function SettingsPanel() {
           distance: String(DEFAULT_DISTANCE_METERS),
         },
       });
-      void reverseGeocodeCoordinates(lat, lon)
-        .then((resolved) => {
-          dispatch({
-            type: "SET_FORM_FIELDS",
-            resetDisplayNameOverrides: true,
-            fields: {
-              location: resolved.label,
-              displayCity: String(resolved.city ?? "").trim(),
-              displayCountry: String(resolved.country ?? "").trim(),
-              displayContinent: String(resolved.continent ?? "").trim(),
-            },
-          });
-          dispatch({ type: "SET_USER_LOCATION", location: resolved });
-        })
-        .catch(() => {
-          const fallbackLocation: SearchResult = {
-            id: `user:${lat.toFixed(6)},${lon.toFixed(6)}`,
-            label: `${lat.toFixed(6)}, ${lon.toFixed(6)}`,
-            city: "",
-            country: "",
-            continent: "",
-            lat,
-            lon,
-          };
-          dispatch({
-            type: "SET_FORM_FIELDS",
-            resetDisplayNameOverrides: true,
-            fields: {
-              location: fallbackLocation.label,
-            },
-          });
-          dispatch({ type: "SET_USER_LOCATION", location: fallbackLocation });
-        })
-        .finally(() => {
-          setIsLocatingUser(false);
+      try {
+        const resolved = await reverseGeocodeCoordinates(lat, lon);
+        dispatch({
+          type: "SET_FORM_FIELDS",
+          resetDisplayNameOverrides: true,
+          fields: {
+            location: resolved.label,
+            displayCity: String(resolved.city ?? "").trim(),
+            displayCountry: String(resolved.country ?? "").trim(),
+            displayContinent: String(resolved.continent ?? "").trim(),
+          },
         });
-    };
-
-    const requestPosition = (retry = false) => {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          applyLocation(position.coords.latitude, position.coords.longitude);
-        },
-        (error) => {
-          if (!retry) {
-            requestPosition(true);
-          } else {
-            if (error?.code === 1) {
-              setLocationPermissionMessage(
-                "Location access is blocked. Please enable location permission for this website in your browser settings and try again. We do not track your location: this app runs fully client-side on your device and is open source.",
-              );
-            } else {
-              setLocationPermissionMessage(
-                "Could not get your current location right now. Please check browser location permissions and try again.",
-              );
-            }
-            setIsLocatingUser(false);
-          }
-        },
-        {
-          enableHighAccuracy: retry,
-          timeout: GEOLOCATION_TIMEOUT_MS,
-          maximumAge: 0,
-        },
-      );
+        dispatch({ type: "SET_USER_LOCATION", location: resolved });
+      } catch {
+        const fallbackLocation: SearchResult = {
+          id: `user:${lat.toFixed(6)},${lon.toFixed(6)}`,
+          label: `${lat.toFixed(6)}, ${lon.toFixed(6)}`,
+          city: "",
+          country: "",
+          continent: "",
+          lat,
+          lon,
+        };
+        dispatch({
+          type: "SET_FORM_FIELDS",
+          resetDisplayNameOverrides: true,
+          fields: {
+            location: fallbackLocation.label,
+          },
+        });
+        dispatch({ type: "SET_USER_LOCATION", location: fallbackLocation });
+      }
     };
 
     setIsLocatingUser(true);
-    requestPosition(false);
+    void (async () => {
+      const positionResult = await requestCurrentPositionWithRetry({
+        timeoutMs: GEOLOCATION_TIMEOUT_MS,
+        maxAttempts: 2,
+      });
+
+      if (!positionResult.ok) {
+        setLocationPermissionMessage(
+          getGeolocationFailureMessage(positionResult.reason),
+        );
+        setIsLocatingUser(false);
+        return;
+      }
+
+      await applyLocation(positionResult.lat, positionResult.lon);
+      setIsLocatingUser(false);
+    })();
   };
 
   const onSubmit = (e: FormEvent) => {

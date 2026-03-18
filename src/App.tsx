@@ -7,6 +7,7 @@ import PreviewPanel from "@/features/poster/ui/PreviewPanel";
 import MobileNavBar, { type MobileTab } from "@/shared/ui/MobileNavBar";
 import InstallPrompt from "@/features/install/ui/InstallPrompt";
 import { useSwipeDown } from "@/shared/hooks/useSwipeDown";
+import StartupLocationModal from "@/features/location/ui/StartupLocationModal";
 
 const AboutModal = lazy(() => import("@/shared/ui/AboutModal"));
 const SettingsPanel = lazy(() => import("@/features/poster/ui/SettingsPanel"));
@@ -16,9 +17,6 @@ const AnnouncementModal = lazy(
 const DesktopExportFab = lazy(() => import("@/features/export/ui/DesktopExportFab"));
 const MobileExportFab = lazy(() => import("@/features/export/ui/MobileExportFab"));
 const DesktopLocationBar = lazy(() => import("@/shared/ui/DesktopLocationBar"));
-const StartupLocationModal = lazy(
-  () => import("@/features/location/ui/StartupLocationModal"),
-);
 
 function SettingsDrawer({
   mobileTab,
@@ -78,7 +76,6 @@ function AppShell() {
       void import("@/features/export/ui/DesktopExportFab");
       void import("@/features/export/ui/MobileExportFab");
       void import("@/features/updates/ui/AnnouncementModal");
-      void import("@/features/location/ui/StartupLocationModal");
     };
 
     if ("requestIdleCallback" in window) {
@@ -122,9 +119,7 @@ function AppShell() {
     >
       <GeneralHeader onAboutOpen={() => setAboutOpen(true)} />
       <InstallPrompt />
-      <Suspense fallback={null}>
-        <StartupLocationModal />
-      </Suspense>
+      <StartupLocationModal />
 
       <DesktopNavBar
         activeTab={desktopTab}

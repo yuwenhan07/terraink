@@ -8,6 +8,10 @@ import {
 } from "@/core/config";
 import { geocodeLocation, reverseGeocodeCoordinates } from "@/core/services";
 import { GEOLOCATION_TIMEOUT_MS } from "@/features/map/infrastructure";
+import {
+  getGeolocationFailureMessage,
+  requestCurrentPositionWithRetry,
+} from "@/features/location/infrastructure";
 import { MyLocationIcon } from "@/shared/ui/Icons";
 import { usePosterContext } from "@/features/poster/ui/PosterContext";
 import { useLocationAutocomplete } from "@/features/location/application/useLocationAutocomplete";
@@ -100,51 +104,59 @@ export default function StartupLocationModal({
   };
 
   const handleUseMyLocation = () => {
-    if (!navigator.geolocation || isResolving) {
+    if (isResolving) {
       return;
     }
 
     setIsResolving(true);
     setErrorMessage("");
+    void (async () => {
+      const positionResult = await requestCurrentPositionWithRetry({
+        timeoutMs: GEOLOCATION_TIMEOUT_MS,
+        maxAttempts: 2,
+      });
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
-        void reverseGeocodeCoordinates(lat, lon)
-          .then((resolved) => {
-            const pending: PendingLocation = {
-              label: String(resolved.label ?? "").trim() || `${lat.toFixed(6)}, ${lon.toFixed(6)}`,
-              lat,
-              lon,
-              city: String(resolved.city ?? "").trim(),
-              country: String(resolved.country ?? "").trim(),
-              continent: String(resolved.continent ?? "").trim(),
-            };
-            setPendingLocation(pending);
-            setLocationInput(pending.label);
-          })
-          .catch(() => {
-            const label = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-            const pending: PendingLocation = {
-              label,
-              lat,
-              lon,
-              city: "",
-              country: "",
-              continent: "",
-            };
-            setPendingLocation(pending);
-            setLocationInput(label);
-          })
-          .finally(() => setIsResolving(false));
-      },
-      () => {
-        setErrorMessage("Location access failed. You can type a location manually.");
+      if (!positionResult.ok) {
+        setErrorMessage(
+          getGeolocationFailureMessage(positionResult.reason, {
+            includeManualFallback: true,
+          }),
+        );
         setIsResolving(false);
-      },
-      { enableHighAccuracy: false, timeout: GEOLOCATION_TIMEOUT_MS, maximumAge: 0 },
-    );
+        return;
+      }
+
+      const { lat, lon } = positionResult;
+      try {
+        const resolved = await reverseGeocodeCoordinates(lat, lon);
+        const pending: PendingLocation = {
+          label:
+            String(resolved.label ?? "").trim() ||
+            `${lat.toFixed(6)}, ${lon.toFixed(6)}`,
+          lat,
+          lon,
+          city: String(resolved.city ?? "").trim(),
+          country: String(resolved.country ?? "").trim(),
+          continent: String(resolved.continent ?? "").trim(),
+        };
+        setPendingLocation(pending);
+        setLocationInput(pending.label);
+      } catch {
+        const label = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+        const pending: PendingLocation = {
+          label,
+          lat,
+          lon,
+          city: "",
+          country: "",
+          continent: "",
+        };
+        setPendingLocation(pending);
+        setLocationInput(label);
+      } finally {
+        setIsResolving(false);
+      }
+    })();
   };
 
   const onSuggestionSelect = (suggestion: SearchResult) => {
