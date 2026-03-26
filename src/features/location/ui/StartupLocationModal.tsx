@@ -241,6 +241,9 @@ export default function StartupLocationModal({
           onChange={(event) => {
             setLocationInput(event.target.value);
             setPendingLocation(null);
+            // Restore focus state when user types after selecting a suggestion
+            // (DOM focus may still be on the input, so onFocus won't re-fire).
+            if (!isInputFocused) setIsInputFocused(true);
           }}
           onFocus={() => setIsInputFocused(true)}
           onBlur={() => setTimeout(() => setIsInputFocused(false), 120)}

@@ -36,11 +36,18 @@ export function useFormHandlers() {
         return;
       }
 
-      let fieldValue: string | boolean = value as string;
+      const fieldValue: string | boolean = value as string;
+
+      // After a suggestion is selected, the reducer sets isLocationFocused=false.
+      // If the user starts typing without re-clicking (DOM focus never left),
+      // onFocus never fires, so we restore it here on the first keystroke.
+      if (name === "location" && !state.isLocationFocused) {
+        dispatch({ type: "SET_LOCATION_FOCUSED", focused: true });
+      }
 
       dispatch({ type: "SET_FIELD", name, value: fieldValue });
     },
-    [dispatch],
+    [dispatch, state.isLocationFocused],
   );
 
   const handleNumericFieldBlur = useCallback(
