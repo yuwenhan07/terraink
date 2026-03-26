@@ -1,7 +1,8 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { usePosterContext } from "@/features/poster/ui/PosterContext";
 import { useFormHandlers } from "@/features/poster/application/useFormHandlers";
 import { useLocationAutocomplete } from "@/features/location/application/useLocationAutocomplete";
+import { useCurrentLocation } from "@/features/location/application/useCurrentLocation";
 import { useMapSync } from "@/features/map/application/useMapSync";
 import type { MobileTab } from "@/shared/ui/MobileNavBar";
 
@@ -26,15 +27,8 @@ import {
   MIN_POSTER_CM,
   MAX_POSTER_CM,
   FONT_OPTIONS,
-  DEFAULT_DISTANCE_METERS,
 } from "@/core/config";
-import { reverseGeocodeCoordinates } from "@/core/services";
-import { GEOLOCATION_TIMEOUT_MS } from "@/features/map/infrastructure";
 import type { SearchResult } from "@/features/location/domain/types";
-import {
-  getGeolocationFailureMessage,
-  requestCurrentPositionWithRetry,
-} from "@/features/location/infrastructure";
 
 type SectionId =
   | "location"
@@ -62,7 +56,7 @@ export default function SettingsPanel({
 }: {
   mobileTab?: MobileTab;
 }) {
-  const { state, selectedTheme, dispatch } = usePosterContext();
+  const { state, selectedTheme } = usePosterContext();
   const {
     handleChange,
     handleNumericFieldBlur,
@@ -80,11 +74,10 @@ export default function SettingsPanel({
     state.isLocationFocused,
   );
   const { flyToLocation } = useMapSync();
+  const { handleUseCurrentLocation, isLocatingUser, locationPermissionMessage } =
+    useCurrentLocation(flyToLocation);
 
   const [isColorEditorActive, setIsColorEditorActive] = useState(false);
-  const [isLocatingUser, setIsLocatingUser] = useState(false);
-  const [locationPermissionMessage, setLocationPermissionMessage] =
-    useState("");
   const [openSections, setOpenSections] = useState<Set<SectionId>>(
     new Set(["location", "theme", "layout", "style"]),
   );
@@ -110,81 +103,8 @@ export default function SettingsPanel({
     flyToLocation(location.lat, location.lon);
   };
 
-  const handleUseCurrentLocation = () => {
-    if (isLocatingUser) return;
-
-    const applyLocation = async (lat: number, lon: number) => {
-      setLocationPermissionMessage("");
-      flyToLocation(lat, lon);
-      dispatch({
-        type: "SET_FORM_FIELDS",
-        resetDisplayNameOverrides: true,
-        fields: {
-          latitude: lat.toFixed(6),
-          longitude: lon.toFixed(6),
-          distance: String(DEFAULT_DISTANCE_METERS),
-        },
-      });
-      try {
-        const resolved = await reverseGeocodeCoordinates(lat, lon);
-        dispatch({
-          type: "SET_FORM_FIELDS",
-          resetDisplayNameOverrides: true,
-          fields: {
-            location: resolved.label,
-            displayCity: String(resolved.city ?? "").trim(),
-            displayCountry: String(resolved.country ?? "").trim(),
-            displayContinent: String(resolved.continent ?? "").trim(),
-          },
-        });
-        dispatch({ type: "SET_USER_LOCATION", location: resolved });
-      } catch {
-        const fallbackLocation: SearchResult = {
-          id: `user:${lat.toFixed(6)},${lon.toFixed(6)}`,
-          label: `${lat.toFixed(6)}, ${lon.toFixed(6)}`,
-          city: "",
-          country: "",
-          continent: "",
-          lat,
-          lon,
-        };
-        dispatch({
-          type: "SET_FORM_FIELDS",
-          resetDisplayNameOverrides: true,
-          fields: {
-            location: fallbackLocation.label,
-          },
-        });
-        dispatch({ type: "SET_USER_LOCATION", location: fallbackLocation });
-      }
-    };
-
-    setIsLocatingUser(true);
-    void (async () => {
-      const positionResult = await requestCurrentPositionWithRetry({
-        timeoutMs: GEOLOCATION_TIMEOUT_MS,
-        maxAttempts: 2,
-      });
-
-      if (!positionResult.ok) {
-        setLocationPermissionMessage(
-          getGeolocationFailureMessage(positionResult.reason),
-        );
-        setIsLocatingUser(false);
-        return;
-      }
-
-      await applyLocation(positionResult.lat, positionResult.lon);
-      setIsLocatingUser(false);
-    })();
-  };
-
-  const onSubmit = (e: FormEvent) => {
-    e.preventDefault();
-  };
-
   return (
-    <form className="settings-panel" onSubmit={onSubmit}>
+    <form className="settings-panel" onSubmit={(e) => e.preventDefault()}>
       <div
         className={`mobile-section mobile-section--location accordion-item${openSections.has("location") ? " accordion-item--open" : ""}`}
       >
