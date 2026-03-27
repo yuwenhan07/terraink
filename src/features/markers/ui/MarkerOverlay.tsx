@@ -51,6 +51,7 @@ export default function MarkerOverlay({
   onMarkerPositionChange,
   onMarkerSizeChange,
 }: MarkerOverlayProps) {
+  const KEYBOARD_MOVE_STEP = 1;
   const KEYBOARD_RESIZE_STEP = 3;
   const [, setRenderTick] = useState(0);
   const overlayRef = useRef<HTMLDivElement | null>(null);
@@ -69,6 +70,19 @@ export default function MarkerOverlay({
 
   type TouchPointLike = { clientX: number; clientY: number };
   type TouchListLike = { length: number; [index: number]: TouchPointLike };
+  const isEditableTarget = (target: EventTarget | null): boolean => {
+    if (!(target instanceof HTMLElement)) {
+      return false;
+    }
+
+    const tagName = target.tagName;
+    return (
+      target.isContentEditable ||
+      tagName === "INPUT" ||
+      tagName === "TEXTAREA" ||
+      tagName === "SELECT"
+    );
+  };
   const isMobileTouchInput = (): boolean =>
     typeof window !== "undefined" &&
     window.matchMedia("(hover: none) and (pointer: coarse)").matches;
@@ -132,6 +146,48 @@ export default function MarkerOverlay({
       }
     },
     [isMarkerEditMode, mapRef, onMarkerPositionChange],
+  );
+
+  const nudgeMarkerByScreenDelta = useCallback(
+    (markerId: string, deltaX: number, deltaY: number) => {
+      if (!isMarkerEditMode || !onMarkerPositionChange) {
+        return;
+      }
+
+      const map = mapRef.current;
+      const overlay = overlayRef.current;
+      const marker = markers.find((item) => item.id === markerId);
+      if (!map || !overlay || !marker) {
+        return;
+      }
+
+      const bounds = overlay.getBoundingClientRect();
+      if (bounds.width <= 0 || bounds.height <= 0) {
+        return;
+      }
+
+      try {
+        const currentPoint = map.project([marker.lon, marker.lat]);
+        const overlayX = clamp(
+          currentPoint.x / MAP_OVERZOOM_SCALE + deltaX,
+          0,
+          bounds.width,
+        );
+        const overlayY = clamp(
+          currentPoint.y / MAP_OVERZOOM_SCALE + deltaY,
+          0,
+          bounds.height,
+        );
+        const nextPosition = map.unproject([
+          overlayX * MAP_OVERZOOM_SCALE,
+          overlayY * MAP_OVERZOOM_SCALE,
+        ]);
+        onMarkerPositionChange(markerId, nextPosition.lat, nextPosition.lng);
+      } catch {
+        // Ignore projection failures during keyboard nudging.
+      }
+    },
+    [isMarkerEditMode, mapRef, markers, onMarkerPositionChange],
   );
 
   const handleMarkerPointerDown = useCallback(
@@ -401,18 +457,54 @@ export default function MarkerOverlay({
   }, [isMarkerEditMode, isTouchSelectionActive, selectedMarkerId]);
 
   useEffect(() => {
-    if (!isMarkerEditMode || !selectedMarkerId || !onMarkerSizeChange) {
+    if (!isMarkerEditMode || !selectedMarkerId) {
       return;
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey ||
+        isEditableTarget(event.target)
+      ) {
+        return;
+      }
+
+      const marker = markers.find((item) => item.id === selectedMarkerId);
+      if (!marker) {
+        return;
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        nudgeMarkerByScreenDelta(marker.id, 0, -KEYBOARD_MOVE_STEP);
+        return;
+      }
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        nudgeMarkerByScreenDelta(marker.id, 0, KEYBOARD_MOVE_STEP);
+        return;
+      }
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        nudgeMarkerByScreenDelta(marker.id, -KEYBOARD_MOVE_STEP, 0);
+        return;
+      }
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        nudgeMarkerByScreenDelta(marker.id, KEYBOARD_MOVE_STEP, 0);
+        return;
+      }
+
+      if (!onMarkerSizeChange) {
+        return;
+      }
+
       const isPlus = event.key === "+" || event.key === "=";
       const isMinus = event.key === "-" || event.key === "_";
       if (!isPlus && !isMinus) {
-        return;
-      }
-      const marker = markers.find((item) => item.id === selectedMarkerId);
-      if (!marker) {
         return;
       }
       event.preventDefault();
@@ -431,7 +523,13 @@ export default function MarkerOverlay({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isMarkerEditMode, markers, onMarkerSizeChange, selectedMarkerId]);
+  }, [
+    isMarkerEditMode,
+    markers,
+    nudgeMarkerByScreenDelta,
+    onMarkerSizeChange,
+    selectedMarkerId,
+  ]);
 
   useEffect(() => {
     const map = mapRef.current;

@@ -355,7 +355,7 @@ export default function MarkersSection() {
       : null;
   const markerHelpText = isMobileViewport
     ? "Click an icon to drop a marker on the current map location. Marker settings apply to all markers and can be moved directly on the map. In marker edit mode, drag to move markers and use the marker size slider below the location row to resize."
-    : "Click an icon to drop a marker on the current map location. Marker settings apply to all markers and can be moved directly on the map. In marker edit mode, drag to move, use two-finger pinch or mouse wheel to resize, and use scroll or the +/- map controls to zoom.";
+    : "Click an icon to drop a marker on the current map location. Marker settings apply to all markers and can be moved directly on the map. In marker edit mode, drag to move, use the arrow keys for fine nudging, use two-finger pinch or mouse wheel to resize, and use scroll or the +/- map controls to zoom.";
 
   return (
     <section className="panel-block color-editor-screen marker-settings-screen">
@@ -824,7 +824,7 @@ export default function MarkersSection() {
                   <p className="marker-settings-toggle-hint marker-settings-toggle-hint--editor">
                     {isMobileViewport
                       ? "Swipe the marker row to choose one, then tap it to edit. Drag it on the map to move it, and use the marker-size slider below the location row to resize."
-                      : "Click a marker card to edit it. Drag the selected marker on the map to move it, then adjust size and color in the editor."}
+                      : "Click a marker card to edit it. Drag the selected marker on the map to move it, use the arrow keys for fine nudging, then adjust size and color in the editor."}
                   </p>
                 ) : null}
 
