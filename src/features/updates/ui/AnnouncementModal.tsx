@@ -1,5 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from "react";
 import { IoClose } from "react-icons/io5";
+import { APP_VERSION, UPDATES_URL } from "@/core/config";
 
 type UpdateCategory =
   | "new"
@@ -51,8 +52,7 @@ interface CategoryMeta {
 }
 
 const LAST_SEEN_VERSION = "last_seen_version";
-const CURRENT_VERSION = String(import.meta.env.VITE_APP_VERSION ?? "").trim();
-const UPDATES_URL = String(import.meta.env.VITE_UPDATES_URL ?? "/updates.json").trim();
+const CURRENT_VERSION = APP_VERSION;
 
 const categoryConfig: Record<UpdateCategory, CategoryMeta> = {
   new: { icon: "✨", label: "New" },

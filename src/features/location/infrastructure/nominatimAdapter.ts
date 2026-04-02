@@ -6,15 +6,12 @@ import {
   normalizeLocationResult,
   parseLocationResponseItems,
 } from "./locationParser";
-import {
-  GEOCODE_TTL_MS,
-  LOCATION_SEARCH_TTL_MS,
-} from "@/features/map/infrastructure/constants";
+import { GEOCODE_TTL_MS, LOCATION_SEARCH_TTL_MS } from "./constants";
 import {
   getGeocodeCacheKey,
   getLocationSearchCacheKey,
   getReverseGeocodeCacheKey,
-} from "@/features/map/infrastructure/cacheKeys";
+} from "./cacheKeys";
 
 // Deduplicate concurrent reverse geocode requests for the same coordinates
 const inFlightReverseRequests = new Map<string, Promise<SearchResult>>();
