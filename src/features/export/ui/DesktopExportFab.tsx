@@ -1,26 +1,25 @@
 import { useEffect, useState } from "react";
 import { useExport } from "@/features/export/application/useExport";
-import { usePosterContext } from "@/features/poster/ui/PosterContext";
 import { DownloadIcon, LoaderIcon } from "@/shared/ui/Icons";
 import SupportModal from "@/features/export/ui/SupportModal";
 
 export default function DesktopExportFab() {
   const {
+    isExporting,
     handleDownloadPng,
     handleDownloadPdf,
     handleDownloadSvg,
     supportPrompt,
     dismissSupportPrompt,
   } = useExport();
-  const { state } = usePosterContext();
   const [activeFormat, setActiveFormat] = useState<"png" | "pdf" | "svg" | null>(null);
 
   useEffect(() => {
-    if (!state.isExporting) setActiveFormat(null);
-  }, [state.isExporting]);
+    if (!isExporting) setActiveFormat(null);
+  }, [isExporting]);
 
   const isLoading = (fmt: "png" | "pdf" | "svg") =>
-    state.isExporting && activeFormat === fmt;
+    isExporting && activeFormat === fmt;
 
   return (
     <>
@@ -30,7 +29,7 @@ export default function DesktopExportFab() {
           <button
             type="button"
             className="desktop-export-btn desktop-export-btn--svg"
-            disabled={state.isExporting}
+            disabled={isExporting}
             onClick={() => { setActiveFormat("svg"); void handleDownloadSvg(); }}
           >
             {isLoading("svg")
@@ -41,7 +40,7 @@ export default function DesktopExportFab() {
           <button
             type="button"
             className="desktop-export-btn desktop-export-btn--pdf"
-            disabled={state.isExporting}
+            disabled={isExporting}
             onClick={() => { setActiveFormat("pdf"); void handleDownloadPdf(); }}
           >
             {isLoading("pdf")
@@ -55,7 +54,7 @@ export default function DesktopExportFab() {
         <button
           type="button"
           className="desktop-export-btn desktop-export-btn--primary"
-          disabled={state.isExporting}
+          disabled={isExporting}
           onClick={() => { setActiveFormat("png"); void handleDownloadPng(); }}
         >
           {isLoading("png")

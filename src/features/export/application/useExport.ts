@@ -92,7 +92,7 @@ export function useExport() {
         return;
       }
 
-      dispatch({ type: "START_EXPORT" });
+      dispatch({ type: "SET_EXPORT_STATUS", exporting: true });
 
       try {
         // Ensure font is loaded before compositing text
@@ -136,7 +136,7 @@ export function useExport() {
           );
           triggerDownloadBlob(svgBlob, svgFilename);
           registerSuccessfulExport();
-          dispatch({ type: "FINISH_EXPORT" });
+          dispatch({ type: "SET_EXPORT_STATUS", exporting: false });
           return;
         }
 
@@ -190,10 +190,10 @@ export function useExport() {
         }
 
         registerSuccessfulExport();
-        dispatch({ type: "FINISH_EXPORT" });
+        dispatch({ type: "SET_EXPORT_STATUS", exporting: false });
       } catch (err) {
         const message = err instanceof Error ? err.message : "Export failed.";
-        dispatch({ type: "FAIL_EXPORT", error: message });
+        dispatch({ type: "SET_EXPORT_STATUS", exporting: false, error: message });
       }
     },
     [
@@ -224,6 +224,7 @@ export function useExport() {
   );
 
   return {
+    isExporting: state.isExporting,
     handleDownloadPng,
     handleDownloadPdf,
     handleDownloadSvg,
