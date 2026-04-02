@@ -34,6 +34,7 @@ import {
   type ThemeColorKey,
 } from "@/features/theme/domain/types";
 import { getThemeColorByPath } from "@/features/theme/domain/colorPaths";
+import { normalizeHexColor } from "@/shared/utils/color";
 
 function readFileAsDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -42,10 +43,6 @@ function readFileAsDataUrl(file: File) {
     reader.onerror = () => reject(new Error("Could not read marker upload."));
     reader.readAsDataURL(file);
   });
-}
-
-function isHexColor(value: string) {
-  return /^#[0-9a-f]{6}$/i.test(value);
 }
 
 function isSvgFile(file: File) {
@@ -353,6 +350,9 @@ export default function MarkersSection() {
     expandedMarkerId && openMarkerColorPickerId === expandedMarkerId
       ? markerRows.find(({ marker }) => marker.id === expandedMarkerId) ?? null
       : null;
+  const activeMarkerColorChoices = activeColorPickerMarker
+    ? buildDynamicColorChoices(activeColorPickerMarker.marker.color, markerColorPalette)
+    : null;
   const markerHelpText = isMobileViewport
     ? "Click an icon to drop a marker on the current map location. Marker settings apply to all markers and can be moved directly on the map. In marker edit mode, drag to move markers and use the marker size slider below the location row to resize."
     : "Click an icon to drop a marker on the current map location. Marker settings apply to all markers and can be moved directly on the map. In marker edit mode, drag to move, use the arrow keys for fine nudging, use two-finger pinch or mouse wheel to resize, and use scroll or the +/- map controls to zoom.";
@@ -507,9 +507,8 @@ export default function MarkersSection() {
                       className="marker-editor-card__color-swatch"
                       aria-hidden="true"
                       style={{
-                        backgroundColor: isHexColor(markerDefaults.color)
-                          ? markerDefaults.color
-                          : "#000000",
+                        backgroundColor:
+                          normalizeHexColor(markerDefaults.color) || "#000000",
                       }}
                     />
                     <span className="marker-editor-card__color-value">
@@ -550,14 +549,8 @@ export default function MarkersSection() {
                 </div>
                 <ColorPicker
                   currentColor={activeColorPickerMarker.marker.color}
-                  suggestedColors={buildDynamicColorChoices(
-                    activeColorPickerMarker.marker.color,
-                    markerColorPalette,
-                  ).suggestedColors}
-                  moreColors={buildDynamicColorChoices(
-                    activeColorPickerMarker.marker.color,
-                    markerColorPalette,
-                  ).moreColors}
+                  suggestedColors={activeMarkerColorChoices!.suggestedColors}
+                  moreColors={activeMarkerColorChoices!.moreColors}
                   onChange={(color) =>
                     updateMarker(activeColorPickerMarker.marker.id, { color })
                   }
@@ -717,11 +710,15 @@ export default function MarkersSection() {
                                           className="form-control-tall"
                                           type="number"
                                           step="0.000001"
+                                          min={-90}
+                                          max={90}
                                           value={formatCoordinate(marker.lat)}
                                           onChange={(event) => {
                                             const nextValue = Number(event.target.value);
                                             if (Number.isFinite(nextValue)) {
-                                              updateMarker(marker.id, { lat: nextValue });
+                                              updateMarker(marker.id, {
+                                                lat: Math.max(-90, Math.min(90, nextValue)),
+                                              });
                                             }
                                           }}
                                         />
@@ -732,11 +729,15 @@ export default function MarkersSection() {
                                           className="form-control-tall"
                                           type="number"
                                           step="0.000001"
+                                          min={-180}
+                                          max={180}
                                           value={formatCoordinate(marker.lon)}
                                           onChange={(event) => {
                                             const nextValue = Number(event.target.value);
                                             if (Number.isFinite(nextValue)) {
-                                              updateMarker(marker.id, { lon: nextValue });
+                                              updateMarker(marker.id, {
+                                                lon: Math.max(-180, Math.min(180, nextValue)),
+                                              });
                                             }
                                           }}
                                         />
@@ -794,9 +795,8 @@ export default function MarkersSection() {
                                               className="marker-editor-card__color-swatch"
                                               aria-hidden="true"
                                               style={{
-                                                backgroundColor: isHexColor(marker.color)
-                                                  ? marker.color
-                                                  : "#000000",
+                                                backgroundColor:
+                                                  normalizeHexColor(marker.color) || "#000000",
                                               }}
                                             />
                                             <span className="marker-editor-card__color-value">
