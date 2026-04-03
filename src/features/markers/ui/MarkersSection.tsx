@@ -77,28 +77,28 @@ function DeleteAllMarkersModal({
         aria-labelledby="marker-delete-modal-title"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="marker-delete-modal-body">
+        <div className="marker-delete-modal__body">
           <p
-            className="marker-delete-modal-headline"
+            className="marker-delete-modal__headline"
             id="marker-delete-modal-title"
           >
             Delete all markers?
           </p>
-          <p className="marker-delete-modal-text">
+          <p className="marker-delete-modal__text">
             This will remove {markerCount} marker{markerCount === 1 ? "" : "s"}{" "}
             from the map.
           </p>
-          <div className="marker-delete-modal-actions">
+          <div className="marker-delete-modal__actions">
             <button
               type="button"
-              className="marker-delete-modal-cancel"
+              className="marker-delete-modal__cancel"
               onClick={onCancel}
             >
               Keep markers
             </button>
             <button
               type="button"
-              className="marker-delete-modal-confirm"
+              className="marker-delete-modal__confirm"
               onClick={onConfirm}
             >
               <TrashIcon />

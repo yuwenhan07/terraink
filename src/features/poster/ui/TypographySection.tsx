@@ -33,25 +33,25 @@ function CreditsRemovalModal({
         aria-labelledby="credits-modal-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="credits-modal-body">
-          <p className="credits-modal-headline" id="credits-modal-title">
+        <div className="credits-modal__body">
+          <p className="credits-modal__headline" id="credits-modal-title">
             ✨ Wait! Did you know Terraink is open-source?
           </p>
-          <p className="credits-modal-text">
+          <p className="credits-modal__text">
             Keeping the credit visible helps more people find this tool and
             allows me to keep it <strong>100% free</strong> and client-side.
           </p>
-          <div className="credits-modal-actions">
+          <div className="credits-modal__actions">
             <button
               type="button"
-              className="credits-modal-keep"
+              className="credits-modal__keep"
               onClick={onKeep}
             >
               <span className="heart">❤︎</span> Keep Credits
             </button>
             <button
               type="button"
-              className="credits-modal-remove"
+              className="credits-modal__remove"
               onClick={onRemove}
             >
               Remove Anyway
