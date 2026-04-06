@@ -12,7 +12,11 @@ import {
   DEFAULT_CONTAINER_PX,
   FLY_TO_DURATION_MS,
 } from "@/core/config";
-import { MAP_OVERZOOM_SCALE } from "@/features/map/infrastructure/constants";
+import {
+  MAP_OVERZOOM_SCALE,
+  MIN_EFFECTIVE_CONTAINER_PX,
+  MAX_OVERZOOM_SCALE,
+} from "@/features/map/infrastructure/constants";
 
 /**
  * Converts half-width distance (meters) to MapLibre zoom for a given latitude
@@ -108,7 +112,14 @@ export function useMapSync(
   selectedLocationRef.current = state.selectedLocation;
 
   const [containerPx, setContainerPx] = useState(DEFAULT_CONTAINER_PX);
-  const effectiveContainerPx = containerPx * MAP_OVERZOOM_SCALE;
+
+  // Scale up so small viewports reach the same effective width (and thus
+  // the same MapLibre zoom / tile detail level) as desktop.
+  const overzoomScale = Math.min(
+    MAX_OVERZOOM_SCALE,
+    Math.max(MAP_OVERZOOM_SCALE, MIN_EFFECTIVE_CONTAINER_PX / containerPx),
+  );
+  const effectiveContainerPx = containerPx * overzoomScale;
 
   const setContainerWidth = useCallback((px: number) => {
     if (px <= 0) return;
@@ -292,5 +303,6 @@ export function useMapSync(
     handleMoveEnd,
     flyToLocation,
     setContainerWidth,
+    overzoomScale,
   };
 }

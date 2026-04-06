@@ -13,3 +13,14 @@ export const DISTANCE_SLIDER_STEP_METERS = 100;
  * render map at higher internal zoom and compensate viewport scale to preserve framing.
  */
 export const MAP_OVERZOOM_SCALE = 5.5;
+
+/**
+ * Target effective container width (px) for consistent tile detail across
+ * screen sizes.  On small viewports the overzoom scale is increased so the
+ * MapLibre zoom (and therefore tile detail level) stays the same as on
+ * desktop.
+ */
+export const MIN_EFFECTIVE_CONTAINER_PX = 3300; // DEFAULT_CONTAINER_PX * MAP_OVERZOOM_SCALE
+
+/** Safety cap so tiny viewports don't produce unreasonably large canvases. */
+export const MAX_OVERZOOM_SCALE = 10;
