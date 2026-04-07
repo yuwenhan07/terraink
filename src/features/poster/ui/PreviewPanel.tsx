@@ -24,7 +24,6 @@ import {
   MAP_BUTTON_ZOOM_DURATION_MS,
   MAP_BUTTON_ZOOM_STEP,
 } from "@/features/map/infrastructure";
-import { MAP_OVERZOOM_SCALE } from "@/features/map/infrastructure/constants";
 import {
   DEFAULT_POSTER_WIDTH_CM,
   DEFAULT_POSTER_HEIGHT_CM,
@@ -68,6 +67,7 @@ export default function PreviewPanel() {
     handleMove,
     handleMoveEnd,
     setContainerWidth,
+    overzoomScale,
   } = useMapSync(state, dispatch, mapRef);
 
   const frameRef = useRef<HTMLDivElement | null>(null);
@@ -381,9 +381,9 @@ export default function PreviewPanel() {
           <div style={{ overflow: "hidden", width: "100%", height: "100%" }}>
             <div
               style={{
-                width: `${MAP_OVERZOOM_SCALE * 100}%`,
-                height: `${MAP_OVERZOOM_SCALE * 100}%`,
-                transform: `scale(${1 / MAP_OVERZOOM_SCALE})`,
+                width: `${overzoomScale * 100}%`,
+                height: `${overzoomScale * 100}%`,
+                transform: `scale(${1 / overzoomScale})`,
                 transformOrigin: "top left",
               }}
             >
@@ -416,7 +416,7 @@ export default function PreviewPanel() {
             allowRotation={isEditing && isRotationEnabled}
             minZoom={mapMinZoom}
             maxZoom={mapMaxZoom}
-            overzoomScale={MAP_OVERZOOM_SCALE}
+            overzoomScale={overzoomScale}
             onMove={handleMove}
             onMoveEnd={handleMoveEnd}
           />
@@ -433,6 +433,7 @@ export default function PreviewPanel() {
               onActiveMarkerChange={handleMarkerActiveChange}
               onMarkerPositionChange={handleMarkerPositionChange}
               onMarkerSizeChange={handleMarkerSizeChange}
+              overzoomScale={overzoomScale}
             />
           ) : null}
           <PosterTextOverlay

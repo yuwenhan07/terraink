@@ -141,7 +141,18 @@ export default function MapPreview({
       onMoveRef.current?.([currentCenter.lng, currentCenter.lat], map.getZoom());
     });
 
+    // Tell MapLibre to re-measure its canvas whenever the container resizes.
+    // On mobile the container may start at 0 / partial size while CSS
+    // aspect-ratio is still being resolved, so the initial render can be
+    // blank.  This observer ensures the map repaints once the real
+    // dimensions are known.
+    const resizeObserver = new ResizeObserver(() => {
+      map.resize();
+    });
+    resizeObserver.observe(containerRef.current);
+
     return () => {
+      resizeObserver.disconnect();
       mapRef.current = null;
       map.remove();
     };

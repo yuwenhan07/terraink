@@ -4,7 +4,6 @@ import type {
   MarkerItem,
 } from "@/features/markers/domain/types";
 import type { MapInstanceRef } from "@/features/map/domain/types";
-import { MAP_OVERZOOM_SCALE } from "@/features/map/infrastructure/constants";
 import { findMarkerIcon } from "@/features/markers/infrastructure/iconRegistry";
 import MarkerVisual from "./MarkerVisual";
 import {
@@ -62,6 +61,7 @@ interface MarkerOverlayProps {
   onActiveMarkerChange?: (markerId: string | null) => void;
   onMarkerPositionChange?: (markerId: string, lat: number, lon: number) => void;
   onMarkerSizeChange?: (markerId: string, size: number) => void;
+  overzoomScale: number;
 }
 
 function getOppositeHighlightColor(input: string): string {
@@ -90,6 +90,7 @@ export default function MarkerOverlay({
   onActiveMarkerChange,
   onMarkerPositionChange,
   onMarkerSizeChange,
+  overzoomScale,
 }: MarkerOverlayProps) {
   const [renderTick, setRenderTick] = useState(0);
   const overlayRef = useRef<HTMLDivElement | null>(null);
@@ -116,8 +117,8 @@ export default function MarkerOverlay({
                 {
                   marker,
                   icon,
-                  x: point.x / MAP_OVERZOOM_SCALE,
-                  y: point.y / MAP_OVERZOOM_SCALE,
+                  x: point.x / overzoomScale,
+                  y: point.y / overzoomScale,
                 },
               ];
             } catch {
@@ -151,8 +152,8 @@ export default function MarkerOverlay({
       const y = Math.max(0, Math.min(bounds.height, clientY - bounds.top));
 
       try {
-        const mapPointX = x * MAP_OVERZOOM_SCALE;
-        const mapPointY = y * MAP_OVERZOOM_SCALE;
+        const mapPointX = x * overzoomScale;
+        const mapPointY = y * overzoomScale;
         const position = mapInst.unproject([mapPointX, mapPointY]);
         onMarkerPositionChange(markerId, position.lat, position.lng);
       } catch {
@@ -182,18 +183,18 @@ export default function MarkerOverlay({
       try {
         const currentPoint = mapInst.project([marker.lon, marker.lat]);
         const overlayX = clamp(
-          currentPoint.x / MAP_OVERZOOM_SCALE + deltaX,
+          currentPoint.x / overzoomScale + deltaX,
           0,
           bounds.width,
         );
         const overlayY = clamp(
-          currentPoint.y / MAP_OVERZOOM_SCALE + deltaY,
+          currentPoint.y / overzoomScale + deltaY,
           0,
           bounds.height,
         );
         const nextPosition = mapInst.unproject([
-          overlayX * MAP_OVERZOOM_SCALE,
-          overlayY * MAP_OVERZOOM_SCALE,
+          overlayX * overzoomScale,
+          overlayY * overzoomScale,
         ]);
         onMarkerPositionChange(marker.id, nextPosition.lat, nextPosition.lng);
       } catch {
