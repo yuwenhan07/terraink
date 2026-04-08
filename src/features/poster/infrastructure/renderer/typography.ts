@@ -104,7 +104,7 @@ export function drawPosterText(
     ctx.textBaseline = "bottom";
     ctx.font = `300 ${attributionFontSize}px ${bodyFontFamily}`;
     ctx.fillText(
-      `created with ${APP_CREDIT_URL}`,
+      `© ${APP_CREDIT_URL}`,
       width * TEXT_EDGE_MARGIN_RATIO,
       height * (1 - TEXT_EDGE_MARGIN_RATIO),
     );

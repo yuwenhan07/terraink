@@ -133,7 +133,7 @@ export default function PosterTextOverlay({
             left: `${TEXT_EDGE_MARGIN_RATIO * 100}%`,
           }}
         >
-          created with {APP_CREDIT_URL}
+          © {APP_CREDIT_URL}
         </span>
       )}
     </div>

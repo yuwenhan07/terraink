@@ -20,7 +20,7 @@ export const CITY_FONT_BASE_PX = 250;
 export const CITY_FONT_MIN_PX = 110;
 export const COUNTRY_FONT_BASE_PX = 92;
 export const COORDS_FONT_BASE_PX = 58;
-export const ATTRIBUTION_FONT_BASE_PX = 30;
+export const ATTRIBUTION_FONT_BASE_PX = 50;
 
 export function isLatinScript(text: string | undefined | null): boolean {
   if (!text) {
