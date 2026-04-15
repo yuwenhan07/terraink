@@ -11,6 +11,42 @@ interface NominatimEntry {
   address?: Record<string, string>;
 }
 
+const OCEANIA_COUNTRY_CODES = new Set([
+  "AS",
+  "AU",
+  "CK",
+  "CC",
+  "CX",
+  "FJ",
+  "FM",
+  "GU",
+  "KI",
+  "MH",
+  "MP",
+  "NC",
+  "NF",
+  "NR",
+  "NU",
+  "NZ",
+  "PF",
+  "PG",
+  "PN",
+  "PW",
+  "SB",
+  "TK",
+  "TO",
+  "TV",
+  "VU",
+  "WF",
+  "WS",
+]);
+
+function inferContinentFromCountryCode(countryCode: string): string {
+  if (countryCode === "AQ") return "Antarctica";
+  if (OCEANIA_COUNTRY_CODES.has(countryCode)) return "Oceania";
+  return "";
+}
+
 function inferContinentFromCoordinates(lat: number, lon: number): string {
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return "";
   if (lat <= -60) return "Antarctica";
@@ -18,9 +54,8 @@ function inferContinentFromCoordinates(lat: number, lon: number): string {
   if (lat <= 15 && lat >= -60 && lon >= -92 && lon <= -30) return "South America";
   if (lat >= 35 && lon >= -25 && lon <= 60) return "Europe";
   if (lat >= -35 && lat <= 37 && lon >= -20 && lon <= 55) return "Africa";
-  if (lat >= -10 && lon >= 110 && lon <= 180) return "Oceania";
-  if (lat >= -50 && lon >= 110 && lon <= 180) return "Oceania";
   if (lon >= 25 && lon <= 180) return "Asia";
+  if (lat >= -50 && lat <= 25 && lon >= 110 && lon <= 180) return "Oceania";
   return "";
 }
 
@@ -67,7 +102,8 @@ export function normalizeLocationResult(
       "hamlet",
       "municipality",
       "county",
-      "state",
+      "city_district",
+      "state_district",
     ]) || String(entry.city ?? "").trim();
   const country =
     pickFirstAddressValue(address, ["country"]) ||
@@ -75,6 +111,7 @@ export function normalizeLocationResult(
   const countryCode = pickFirstAddressValue(address, ["country_code"]).toUpperCase();
   const continent =
     pickFirstAddressValue(address, ["continent"]) ||
+    inferContinentFromCountryCode(countryCode) ||
     inferContinentFromCoordinates(lat, lon);
 
   return {

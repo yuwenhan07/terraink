@@ -40,12 +40,11 @@ import {
   formatLayoutDimensions,
   getLayoutOption,
 } from "@/features/layout/infrastructure/layoutRepository";
+import { resolvePosterLabels } from "@/features/poster/domain/labelResolver";
 
 const LOCKED_HINT = "Map is locked to prevent unintended movement.";
 const UNLOCK_HINT = `${LOCKED_HINT}\nClick to unlock map editing.`;
 const RECENTER_HINT = "Recenter map to the current location";
-const COUNTRY_VIEW_ZOOM_LEVEL = 10;
-const CONTINENT_VIEW_ZOOM_LEVEL = 6;
 const DEFAULT_LOCATION_LABEL =
   "Hanover, Region Hannover, Lower Saxony, Germany";
 
@@ -179,19 +178,11 @@ export default function PreviewPanel() {
   const markerCount = state.markers.length;
   const markersLabel = `${markerCount} marker${markerCount === 1 ? "" : "s"}`;
   const coordinatesLabel = `${formLat.toFixed(4)}, ${formLon.toFixed(4)}`;
-  const isCityCountryView = mapZoom >= COUNTRY_VIEW_ZOOM_LEVEL;
-  const isCountryContinentView =
-    mapZoom >= CONTINENT_VIEW_ZOOM_LEVEL && mapZoom < COUNTRY_VIEW_ZOOM_LEVEL;
-  const cityLabel = isCityCountryView
-    ? form.displayCity || form.location || "Hanover"
-    : isCountryContinentView
-      ? form.displayCountry || "Germany"
-      : form.displayContinent || "Earth";
-  const countryLabel = isCityCountryView
-    ? form.displayCountry || "Germany"
-    : isCountryContinentView
-      ? form.displayContinent || "Europe"
-      : "Earth";
+  const { city: cityLabel, country: countryLabel } = resolvePosterLabels({
+    displayCity: form.displayCity,
+    displayCountry: form.displayCountry,
+    location: form.location,
+  });
 
   const handleStartEditing = useCallback(() => {
     setIsEditing(true);
