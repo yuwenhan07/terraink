@@ -1,10 +1,8 @@
 import { useCallback } from "react";
 import { usePosterContext } from "@/features/poster/ui/PosterContext";
-import { useStoryMapContext } from "@/features/story-map/ui/StoryMapContext";
 import { localStorageCache } from "@/core/cache/localStorageCache";
 import type { ExportFormat } from "@/features/export/domain/types";
 import { captureMapAsCanvas } from "@/features/export/infrastructure/mapExporter";
-import { createInteractiveHtmlBlob } from "@/features/export/infrastructure/interactiveHtmlExporter";
 import { compositeExport } from "@/features/poster/infrastructure/renderer";
 import { resolveCanvasSize } from "@/features/poster/infrastructure/renderer/canvas";
 import { getAllMarkerIcons } from "@/features/markers/infrastructure/iconRegistry";
@@ -64,16 +62,8 @@ function writePosterExportCount(nextCount: number): void {
  */
 export function useExport() {
   const { state, dispatch, effectiveTheme, mapRef } = usePosterContext();
-  const { state: storyMapState } = useStoryMapContext();
   const { form } = state;
   const hasVisibleMarkers = form.showMarkers && state.markers.length > 0;
-  const hasVisibleStoryMedia =
-    storyMapState.showMediaOverlay && storyMapState.mediaAssets.length > 0;
-  const visibleStoryMediaCount = hasVisibleStoryMedia
-    ? storyMapState.mediaAssets.filter(
-        (item) => Number.isFinite(item.lat) && Number.isFinite(item.lon),
-      ).length
-    : 0;
 
   const registerSuccessfulExport = useCallback(() => {
     const nextCount = readPosterExportCount() + 1;
@@ -191,22 +181,7 @@ export function useExport() {
           format,
         );
 
-        if (format === "html") {
-          const htmlBlob = await createInteractiveHtmlBlob({
-            canvas,
-            items: hasVisibleStoryMedia ? storyMapState.mediaAssets : [],
-            markerProjection,
-            markerScaleX,
-            markerScaleY,
-            title: posterLabels.city || "Memory Map",
-            subtitle:
-              posterLabels.country && posterLabels.country !== posterLabels.city
-                ? `${posterLabels.country} · ${visibleStoryMediaCount} memories`
-                : `${visibleStoryMediaCount} memories`,
-            themeLabel: form.theme,
-          });
-          await triggerDownloadBlob(htmlBlob, filename);
-        } else if (format === "pdf") {
+        if (format === "pdf") {
           const pdfBlob = createPdfBlobFromCanvas(canvas, {
             widthCm,
             heightCm,
@@ -230,13 +205,9 @@ export function useExport() {
       effectiveTheme,
       dispatch,
       hasVisibleMarkers,
-      hasVisibleStoryMedia,
-      visibleStoryMediaCount,
       registerSuccessfulExport,
       state.markers,
       state.customMarkerIcons,
-      storyMapState.mediaAssets,
-      storyMapState.showMediaOverlay,
     ],
   );
 
