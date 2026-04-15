@@ -1,0 +1,181 @@
+<mxfile host="app.diagrams.net" modified="2026-04-15T00:00:00.000Z" agent="Codex" version="24.7.17" type="device">
+  <diagram id="terraink-content-framework" name="Terraink内容框架图">
+    <mxGraphModel dx="1366" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1280" pageHeight="960" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Terraink 内容框架 / 系统架构图" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="390" y="20" width="500" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="图 x-y Terraink 地图海报生成系统内容框架图" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="400" y="48" width="480" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="layer1" value="表现层&#xa;负责页面交互、预览展示、参数输入与弹窗装配" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#333333;fontColor=#333333;fontStyle=1;align=left;verticalAlign=top;spacingLeft=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="90" width="1020" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="ui1" value="AppShell&#xa;Header / Nav / Footer&#xa;Desktop / Mobile 装配" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="100" y="130" width="210" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="ui2" value="PreviewPanel&#xa;MapPreview + GradientFades&#xa;+ PosterTextOverlay + MarkerOverlay" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="340" y="126" width="250" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="ui3" value="SettingsPanel&#xa;Location / Theme / Layout / Typography&#xa;Map / Layers / Markers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="620" y="126" width="250" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="ui4" value="ExportFab / SupportModal&#xa;InstallPrompt / AnnouncementModal&#xa;StartupLocationModal" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="900" y="126" width="150" height="66" as="geometry" />
+        </mxCell>
+
+        <mxCell id="layer2" value="接口层&#xa;负责状态协调、表单事件、地图同步与用例编排" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#333333;fontColor=#333333;fontStyle=1;align=left;verticalAlign=top;spacingLeft=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="240" width="1020" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="api1" value="PosterContext + posterReducer&#xa;单一状态源&#xa;PosterForm / PosterState / Actions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="100" y="284" width="220" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="api2" value="useFormHandlers&#xa;字段变更、尺寸校正&#xa;layout 匹配与切换" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="350" y="284" width="160" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="api3" value="useMapSync&#xa;distance ⇄ zoom&#xa;坐标 / 视图双向同步" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="284" width="160" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="api4" value="Location Hooks&#xa;useLocationAutocomplete&#xa;useCurrentLocation / useGeolocation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="730" y="284" width="170" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="api5" value="useExport / useInstallPrompt&#xa;导出编排、PWA 安装提示&#xa;支持弹窗计数" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="930" y="284" width="120" height="66" as="geometry" />
+        </mxCell>
+
+        <mxCell id="layer3" value="业务逻辑层&#xa;负责主题解析、地图样式生成、文字排版、标记投影与导出合成" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#333333;fontColor=#333333;fontStyle=1;align=left;verticalAlign=top;spacingLeft=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="400" width="1020" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="biz1" value="Theme / Layout Domain&#xa;themeRepository&#xa;colorPaths / layoutMatcher" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="100" y="455" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="biz2" value="Map Domain&#xa;generateMapStyle&#xa;distanceToZoom / zoomToDistance&#xa;overzoom 参数控制" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="290" y="448" width="180" height="84" as="geometry" />
+        </mxCell>
+        <mxCell id="biz3" value="Poster Domain&#xa;textLayout / typography&#xa;渐变遮罩与文字布局" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="490" y="455" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="biz4" value="Markers Domain&#xa;iconRegistry / projection&#xa;屏幕坐标与导出坐标统一" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="680" y="455" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="biz5" value="Export Pipeline&#xa;captureMapAsCanvas&#xa;compositeExport&#xa;PNG / PDF / SVG 生成" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="870" y="448" width="180" height="84" as="geometry" />
+        </mxCell>
+
+        <mxCell id="layer4" value="数据持久层&#xa;负责统一服务装配、浏览器存储、HTTP 访问与平台能力适配" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#333333;fontColor=#333333;fontStyle=1;align=left;verticalAlign=top;spacingLeft=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="600" width="1020" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="data1" value="core/services&#xa;统一暴露 searchLocations / reverseGeocode&#xa;ensureGoogleFont / captureMap / download" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="100" y="648" width="230" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="data2" value="fetchAdapter + nominatimAdapter&#xa;请求超时 / 并发去重 / TTL 缓存" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="360" y="655" width="180" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="data3" value="localStorageCache&#xa;版本前缀缓存&#xa;更新计数 / repo stars" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="570" y="655" width="150" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="data4" value="IndexedDB + customIconStorage&#xa;自定义 marker 图标持久化" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="750" y="655" width="150" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="data5" value="googleFontsAdapter / fileDownloader&#xa;platform / service worker / install" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="930" y="655" width="120" height="56" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ext1" value="OpenFreeMap / OpenMapTiles&#xa;矢量瓦片与地图底层数据" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="180" y="790" width="180" height="68" as="geometry" />
+        </mxCell>
+        <mxCell id="ext2" value="Nominatim&#xa;地理编码 / 逆地理编码" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="790" width="180" height="68" as="geometry" />
+        </mxCell>
+        <mxCell id="ext3" value="Browser APIs&#xa;Geolocation / localStorage / IndexedDB&#xa;Canvas / Service Worker / beforeinstallprompt" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="720" y="783" width="260" height="82" as="geometry" />
+        </mxCell>
+
+        <mxCell id="flowlabel" value="调用流程&#xa;表现层 → 接口层 → 业务逻辑层 → 数据持久层 → 外部服务" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontColor=#333333;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="250" width="130" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="ui2" target="api1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="ui3" target="api2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="ui4" target="api5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="api1" target="biz1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="api3" target="biz2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="api4" target="biz2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="api5" target="biz5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="biz1" target="data1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="biz2" target="data1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="biz5" target="data5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="data1" target="ext1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="data2" target="ext2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="data3" target="ext3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="data4" target="ext3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="data5" target="ext3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" value="地图预览与编辑" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;fontSize=11;" edge="1" parent="1" source="ui2" target="api3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="465" y="225" />
+              <mxPoint x="620" y="225" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e17" value="位置输入" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;fontSize=11;" edge="1" parent="1" source="ui3" target="api4">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="745" y="218" />
+              <mxPoint x="815" y="218" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e18" value="主题 / 排版 / 标记" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;fontSize=11;" edge="1" parent="1" source="api1" target="biz3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="210" y="385" />
+              <mxPoint x="575" y="385" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e19" value="HTTP / Cache / Fonts / Export" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;endArrow=blockThin;endFill=1;fontSize=11;" edge="1" parent="1" source="biz5" target="data1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="960" y="585" />
+              <mxPoint x="215" y="585" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
