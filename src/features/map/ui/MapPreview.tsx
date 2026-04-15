@@ -123,7 +123,7 @@ export default function MapPreview({
       style,
       center,
       zoom,
-      interactive: false,
+      interactive: true,
       attributionControl: false,
       canvasContextAttributes: { preserveDrawingBuffer: true },
     });

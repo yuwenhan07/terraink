@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { PosterProvider } from "@/features/poster/ui/PosterContext";
+import { StoryMapProvider } from "@/features/story-map/ui/StoryMapContext";
 
 interface AppProvidersProps {
   children: ReactNode;
@@ -10,5 +11,9 @@ interface AppProvidersProps {
  * Add new providers here as needed.
  */
 export function AppProviders({ children }: AppProvidersProps) {
-  return <PosterProvider>{children}</PosterProvider>;
+  return (
+    <PosterProvider>
+      <StoryMapProvider>{children}</StoryMapProvider>
+    </PosterProvider>
+  );
 }

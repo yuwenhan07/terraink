@@ -1442,6 +1442,11 @@
     display: none;
   }
 
+  /* Memories tab: show only the memories section */
+  [data-mobile-tab="memories"] .mobile-section:not(.mobile-section--memories) {
+    display: none;
+  }
+
   /* Style tab: show only the style/typography section */
   [data-mobile-tab="style"] .mobile-section:not(.mobile-section--style) {
     display: none;

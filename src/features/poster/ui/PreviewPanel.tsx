@@ -9,6 +9,7 @@ import { usePosterContext } from "./PosterContext";
 import { useMapSync } from "@/features/map/application/useMapSync";
 import MapPreview from "@/features/map/ui/MapPreview";
 import MarkerOverlay from "@/features/markers/ui/MarkerOverlay";
+import StoryNodeOverlay from "@/features/map-story-overlay/ui/StoryNodeOverlay";
 import GradientFades from "./GradientFades";
 import PosterTextOverlay from "./PosterTextOverlay";
 import SettingsInfo from "./SettingsInfo";
@@ -425,6 +426,10 @@ export default function PreviewPanel() {
               overzoomScale={overzoomScale}
             />
           ) : null}
+          <StoryNodeOverlay
+            mapRef={mapRef}
+            theme={effectiveTheme}
+          />
           <PosterTextOverlay
             city={cityLabel}
             country={countryLabel}

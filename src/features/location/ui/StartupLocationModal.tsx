@@ -116,9 +116,10 @@ export default function StartupLocationModal({
         maxAttempts: 2,
       });
 
-      if (!positionResult.ok) {
+      if ("reason" in positionResult) {
+        const failureReason = positionResult.reason;
         setErrorMessage(
-          getGeolocationFailureMessage(positionResult.reason, {
+          getGeolocationFailureMessage(failureReason, {
             includeManualFallback: true,
           }),
         );

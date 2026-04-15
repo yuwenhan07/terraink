@@ -2,6 +2,129 @@
   margin-top: 12px;
 }
 
+.memory-map-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.memory-map-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.memory-map-btn {
+  min-height: 44px;
+  border: 1px solid rgba(130, 184, 217, 0.28);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(38, 78, 105, 0.95), rgba(23, 52, 72, 0.96));
+  color: #ecf7ff;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.memory-map-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.memory-map-btn--secondary {
+  background: rgba(9, 18, 27, 0.78);
+}
+
+.memory-map-file-input {
+  display: none;
+}
+
+.memory-map-summary,
+.memory-map-help,
+.memory-map-unlocated {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(9, 18, 27, 0.78);
+  border: 1px solid rgba(130, 184, 217, 0.12);
+  color: #c8deed;
+}
+
+.memory-map-summary p,
+.memory-map-help {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.memory-map-summary p + p {
+  margin-top: 6px;
+}
+
+.memory-map-gallery {
+  display: grid;
+  gap: 10px;
+  max-height: 320px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.memory-map-card {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 10px;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid rgba(130, 184, 217, 0.14);
+  border-radius: 14px;
+  background: rgba(7, 15, 23, 0.76);
+  color: #eff8ff;
+  text-align: left;
+}
+
+.memory-map-card.is-active {
+  border-color: rgba(94, 206, 255, 0.7);
+  box-shadow: 0 0 0 1px rgba(94, 206, 255, 0.2);
+}
+
+.memory-map-card img {
+  width: 84px;
+  height: 84px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.memory-map-card__meta {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.memory-map-card__meta strong,
+.memory-map-card__meta span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memory-map-card__meta span {
+  font-size: 0.74rem;
+  color: #a9c7da;
+}
+
+.memory-map-unlocated__title {
+  margin: 0 0 8px;
+  font-family: "Spline Sans Mono", monospace;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #f2c57f;
+}
+
+.memory-map-unlocated__list {
+  margin: 0;
+  padding-left: 18px;
+  color: #c5dbe9;
+  display: grid;
+  gap: 4px;
+}
+
 .mobile-section--theme-settings .map-settings-layout-part {
   display: none;
 }

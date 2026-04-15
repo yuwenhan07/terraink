@@ -11,12 +11,14 @@ import MapSettingsSection from "@/features/map/ui/MapSettingsSection";
 import LayersSection from "@/features/map/ui/LayersSection";
 import MarkersSection from "@/features/markers/ui/MarkersSection";
 import TypographySection from "@/features/poster/ui/TypographySection";
+import MemoryMapSection from "@/features/story-map/ui/MemoryMapSection";
 import {
   LocationIcon,
   ThemeIcon,
   LayoutIcon,
   LayersIcon,
   MarkersIcon,
+  MemoryIcon,
   StyleIcon,
   ChevronDownIcon,
 } from "@/shared/ui/Icons";
@@ -36,6 +38,7 @@ type SectionId =
   | "layout"
   | "layers"
   | "markers"
+  | "memories"
   | "style";
 
 const accordionSections: {
@@ -48,6 +51,7 @@ const accordionSections: {
   { id: "layout", label: "Layout", Icon: LayoutIcon },
   { id: "layers", label: "Layers", Icon: LayersIcon },
   { id: "markers", label: "Markers", Icon: MarkersIcon },
+  { id: "memories", label: "Memories", Icon: MemoryIcon },
   { id: "style", label: "Style", Icon: StyleIcon },
 ];
 
@@ -261,12 +265,31 @@ export default function SettingsPanel({
       </div>
 
       <div
+        className={`mobile-section mobile-section--memories accordion-item${openSections.has("memories") ? " accordion-item--open" : ""}`}
+      >
+        <AccordionHeader
+          sectionId="memories"
+          label={accordionSections[5].label}
+          Icon={accordionSections[5].Icon}
+          isOpen={openSections.has("memories")}
+          onToggle={toggleSection}
+        />
+        <div
+          className={`accordion-body${openSections.has("memories") ? " is-open" : ""}`}
+        >
+          <div className="accordion-body-inner">
+            {!isColorEditorActive ? <MemoryMapSection /> : null}
+          </div>
+        </div>
+      </div>
+
+      <div
         className={`mobile-section mobile-section--style accordion-item${openSections.has("style") ? " accordion-item--open" : ""}`}
       >
         <AccordionHeader
           sectionId="style"
-          label={accordionSections[5].label}
-          Icon={accordionSections[5].Icon}
+          label={accordionSections[6].label}
+          Icon={accordionSections[6].Icon}
           isOpen={openSections.has("style")}
           onToggle={toggleSection}
         />

@@ -4,6 +4,7 @@ import {
   LayoutIcon,
   LayersIcon,
   MarkersIcon,
+  MemoryIcon,
   StyleIcon,
   SettingsIcon,
 } from "./Icons";
@@ -14,7 +15,8 @@ export type MobileTab =
   | "layout"
   | "style"
   | "layers"
-  | "markers";
+  | "markers"
+  | "memories";
 
 const tabs: {
   id: MobileTab;
@@ -27,6 +29,7 @@ const tabs: {
   { id: "style", label: "Style", Icon: StyleIcon },
   { id: "layers", label: "Layers", Icon: LayersIcon },
   { id: "markers", label: "Markers", Icon: MarkersIcon },
+  { id: "memories", label: "Memories", Icon: MemoryIcon },
 ];
 
 interface MobileNavBarProps {

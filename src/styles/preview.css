@@ -110,6 +110,68 @@
   overscroll-behavior: contain;
 }
 
+.story-popup-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.story-popup-card {
+  position: absolute;
+  width: 240px;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(204, 231, 247, 0.34);
+  background: rgba(8, 18, 27, 0.96);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.42);
+  transform: translate(-50%, calc(-100% - 16px));
+  pointer-events: auto;
+}
+
+.story-popup-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.story-popup-body {
+  padding: 12px 14px 14px;
+  display: grid;
+  gap: 4px;
+}
+
+.story-popup-title,
+.story-popup-coords,
+.story-popup-meta {
+  margin: 0;
+}
+
+.story-popup-title {
+  font-weight: 700;
+  color: #f5fbff;
+}
+
+.story-popup-coords,
+.story-popup-meta {
+  font-size: 0.76rem;
+  color: #b7d5e8;
+}
+
+.story-popup-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(6, 13, 20, 0.68);
+  color: #eff9ff;
+  font-size: 0.88rem;
+}
+
 .poster-marker {
   position: absolute;
   transform: translate(-50%, -50%);
