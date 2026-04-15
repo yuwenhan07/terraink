@@ -167,7 +167,7 @@ export default function StoryNodeOverlay({
           data: overlayData,
           cluster: true,
           clusterMaxZoom: 13,
-          clusterRadius: 52,
+          clusterRadius: 60,
         });
       }
 
@@ -183,11 +183,11 @@ export default function StoryNodeOverlay({
             "circle-radius": [
               "step",
               ["get", "point_count"],
-              24,
+              28,
               5,
-              30,
+              36,
               20,
-              38,
+              46,
             ],
             "circle-stroke-width": 3,
             "circle-stroke-color": palette.stroke,
@@ -204,10 +204,24 @@ export default function StoryNodeOverlay({
           layout: {
             "text-field": ["get", "point_count_abbreviated"],
             "text-font": ["Arial Unicode MS Bold"],
-            "text-size": 14,
+            "text-size": [
+              "step",
+              ["get", "point_count"],
+              26,
+              5,
+              30,
+              20,
+              34,
+              100,
+              38,
+            ],
+            "text-allow-overlap": true,
           },
           paint: {
             "text-color": palette.clusterText,
+            "text-halo-color": palette.stroke,
+            "text-halo-width": 1.6,
+            "text-halo-blur": 0.4,
           },
         });
       }
@@ -228,8 +242,8 @@ export default function StoryNodeOverlay({
             "circle-radius": [
               "case",
               ["==", ["get", "id"], state.activeMediaId ?? ""],
-              13,
-              9,
+              16,
+              11,
             ],
             "circle-stroke-width": 3,
             "circle-stroke-color": [
@@ -364,8 +378,8 @@ export default function StoryNodeOverlay({
       map.setPaintProperty(POINT_LAYER_ID, "circle-radius", [
         "case",
         ["==", ["get", "id"], state.activeMediaId ?? ""],
-        13,
-        9,
+        16,
+        11,
       ]);
       map.setPaintProperty(POINT_LAYER_ID, "circle-stroke-color", [
         "case",
@@ -379,10 +393,36 @@ export default function StoryNodeOverlay({
       map.setPaintProperty(CLUSTER_LAYER_ID, "circle-stroke-color", palette.stroke);
     }
     if (map.getLayer(CLUSTER_COUNT_LAYER_ID)) {
+      map.setLayoutProperty(CLUSTER_COUNT_LAYER_ID, "text-size", [
+        "step",
+        ["get", "point_count"],
+        26,
+        5,
+        30,
+        20,
+        34,
+        100,
+        38,
+      ]);
       map.setPaintProperty(
         CLUSTER_COUNT_LAYER_ID,
         "text-color",
         palette.clusterText,
+      );
+      map.setPaintProperty(
+        CLUSTER_COUNT_LAYER_ID,
+        "text-halo-color",
+        palette.stroke,
+      );
+      map.setPaintProperty(
+        CLUSTER_COUNT_LAYER_ID,
+        "text-halo-width",
+        1.6,
+      );
+      map.setPaintProperty(
+        CLUSTER_COUNT_LAYER_ID,
+        "text-halo-blur",
+        0.4,
       );
     }
   }, [mapRef, palette, state.activeMediaId, state.showMediaOverlay]);
