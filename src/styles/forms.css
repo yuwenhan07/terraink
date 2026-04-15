@@ -7,6 +7,42 @@
   gap: 12px;
 }
 
+.memory-map-import-mode {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.memory-map-mode-btn {
+  min-height: 42px;
+  border: 1px solid rgba(130, 184, 217, 0.18);
+  border-radius: 999px;
+  background: rgba(10, 21, 31, 0.72);
+  color: #b9d5e7;
+  font-weight: 700;
+}
+
+.memory-map-mode-btn.is-active {
+  border-color: rgba(130, 184, 217, 0.48);
+  background: linear-gradient(180deg, rgba(38, 78, 105, 0.95), rgba(23, 52, 72, 0.96));
+  color: #eff9ff;
+}
+
+.memory-map-date-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.memory-map-date-grid label {
+  margin-bottom: 0;
+}
+
+.memory-map-date-grid input {
+  width: 100%;
+  margin-top: 8px;
+}
+
 .memory-map-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

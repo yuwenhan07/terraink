@@ -6,6 +6,8 @@ export interface StoryMapImportSummary {
   geotaggedCount: number;
   missingLocationCount: number;
   skippedCount: number;
+  filteredOutCount: number;
+  filterLabel: string;
 }
 
 export interface StoryMapState {

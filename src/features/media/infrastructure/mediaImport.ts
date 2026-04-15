@@ -1,8 +1,8 @@
 import type {
   ImportedMediaAsset,
   MediaImportBatch,
+  MediaImportDateFilter,
   MediaImportDescriptor,
-  MediaImportSource,
 } from "@/features/media/domain/types";
 import { extractExifData } from "@/features/media/infrastructure/exifParser";
 
@@ -93,11 +93,103 @@ function isLikelyImage(descriptor: MediaImportDescriptor): boolean {
   );
 }
 
+function parseCapturedAtToMillis(value: string | null): number | null {
+  const normalized = String(value ?? "").trim();
+  const match = normalized.match(
+    /^(\d{4}):(\d{2}):(\d{2})(?:[ T](\d{2}):(\d{2}):(\d{2}))?$/,
+  );
+  if (!match) {
+    return null;
+  }
+
+  const [, year, month, day, hour = "00", minute = "00", second = "00"] = match;
+  const asDate = new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second),
+  );
+  return Number.isFinite(asDate.getTime()) ? asDate.getTime() : null;
+}
+
+function getDateStartMillis(value: string): number | null {
+  if (!value) {
+    return null;
+  }
+  const asDate = new Date(`${value}T00:00:00`);
+  return Number.isFinite(asDate.getTime()) ? asDate.getTime() : null;
+}
+
+function getDateEndMillis(value: string): number | null {
+  if (!value) {
+    return null;
+  }
+  const asDate = new Date(`${value}T23:59:59.999`);
+  return Number.isFinite(asDate.getTime()) ? asDate.getTime() : null;
+}
+
+function applyDateFilter(
+  items: ImportedMediaAsset[],
+  filter: MediaImportDateFilter,
+): Pick<MediaImportBatch, "items" | "filteredOut"> {
+  if (filter.mode !== "date-range") {
+    return { items, filteredOut: [] };
+  }
+
+  const startMillis = getDateStartMillis(filter.startDate);
+  const endMillis = getDateEndMillis(filter.endDate);
+  if (startMillis === null || endMillis === null || startMillis > endMillis) {
+    return {
+      items: [],
+      filteredOut: items.map((item) => ({
+        fileName: item.fileName,
+        relativePath: item.relativePath,
+        reason: "Invalid date range",
+      })),
+    };
+  }
+
+  const accepted: ImportedMediaAsset[] = [];
+  const filteredOut: MediaImportBatch["filteredOut"] = [];
+
+  for (const item of items) {
+    const capturedAtMillis = parseCapturedAtToMillis(item.capturedAt);
+    if (capturedAtMillis === null) {
+      filteredOut.push({
+        fileName: item.fileName,
+        relativePath: item.relativePath,
+        reason: "Missing EXIF capture time",
+      });
+      continue;
+    }
+
+    if (capturedAtMillis < startMillis || capturedAtMillis > endMillis) {
+      filteredOut.push({
+        fileName: item.fileName,
+        relativePath: item.relativePath,
+        reason: "Outside selected date range",
+      });
+      continue;
+    }
+
+    accepted.push(item);
+  }
+
+  return { items: accepted, filteredOut };
+}
+
 export async function importMediaBatch(
   descriptors: MediaImportDescriptor[],
   sourceLabel: string,
+  filter: MediaImportDateFilter = {
+    mode: "all",
+    startDate: "",
+    endDate: "",
+  },
 ): Promise<MediaImportBatch> {
-  const items: ImportedMediaAsset[] = [];
+  const importedItems: ImportedMediaAsset[] = [];
   const skipped: MediaImportBatch["skipped"] = [];
 
   for (const descriptor of descriptors) {
@@ -120,7 +212,7 @@ export async function importMediaBatch(
       ]);
       const exif = extractExifData(arrayBuffer);
 
-      items.push({
+      importedItems.push({
         id: descriptor.id,
         fileName: descriptor.fileName,
         relativePath: descriptor.relativePath,
@@ -151,5 +243,6 @@ export async function importMediaBatch(
     }
   }
 
-  return { items, skipped, sourceLabel };
+  const { items, filteredOut } = applyDateFilter(importedItems, filter);
+  return { items, skipped, filteredOut, sourceLabel };
 }

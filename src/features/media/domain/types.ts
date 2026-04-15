@@ -44,5 +44,16 @@ export interface MediaImportBatch {
     relativePath: string;
     reason: string;
   }[];
+  filteredOut: {
+    fileName: string;
+    relativePath: string;
+    reason: string;
+  }[];
   sourceLabel: string;
+}
+
+export interface MediaImportDateFilter {
+  mode: "all" | "date-range";
+  startDate: string;
+  endDate: string;
 }

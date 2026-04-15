@@ -36,6 +36,7 @@ function getPackageName(id) {
 
 export default defineConfig({
   plugins: [react()],
+  assetsInclude: ["**/*.JPG", "**/*.JPEG", "**/*.PNG", "**/*.WEBP"],
   define: {
     "import.meta.env.VITE_APP_VERSION": JSON.stringify(appVersion),
   },

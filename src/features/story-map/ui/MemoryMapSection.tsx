@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import type {
   ImportedMediaAsset,
   MediaImportBatch,
+  MediaImportDateFilter,
 } from "@/features/media/domain/types";
 import {
   createBundledPicDescriptors,
@@ -25,15 +26,32 @@ function getGeotaggedAssets(items: ImportedMediaAsset[]): ImportedMediaAsset[] {
   );
 }
 
+function getFilterLabel(filter: MediaImportDateFilter): string {
+  if (filter.mode !== "date-range") {
+    return "All images";
+  }
+  return `${filter.startDate} to ${filter.endDate}`;
+}
+
 export default function MemoryMapSection() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isLoadingSamples, setIsLoadingSamples] = useState(false);
+  const [importFilter, setImportFilter] = useState<MediaImportDateFilter>({
+    mode: "all",
+    startDate: "",
+    endDate: "",
+  });
   const { mapRef } = usePosterContext();
   const { state, dispatch } = useStoryMapContext();
   const geotaggedAssets = getGeotaggedAssets(state.mediaAssets);
   const unlocatedAssets = state.mediaAssets.filter(
     (item) => item.locationSource !== "exif",
   );
+  const isDateRangeValid =
+    importFilter.mode !== "date-range" ||
+    (Boolean(importFilter.startDate) &&
+      Boolean(importFilter.endDate) &&
+      importFilter.startDate <= importFilter.endDate);
 
   const applyImportedBatch = async (load: () => Promise<MediaImportBatch>) => {
     dispatch({ type: "SET_IMPORTING", importing: true });
@@ -49,10 +67,16 @@ export default function MemoryMapSection() {
           geotaggedCount: result.items.filter((item) => item.locationSource === "exif").length,
           missingLocationCount: result.items.filter((item) => item.locationSource !== "exif").length,
           skippedCount: result.skipped.length,
+          filteredOutCount: result.filteredOut.length,
+          filterLabel: getFilterLabel(importFilter),
         },
         error:
-          result.items.length === 0 && result.skipped.length > 0
-            ? "No readable images were imported."
+          result.items.length === 0 &&
+          result.filteredOut.length > 0 &&
+          importFilter.mode === "date-range"
+            ? "No images matched the selected EXIF date range."
+            : result.items.length === 0 && result.skipped.length > 0
+              ? "No readable images were imported."
             : "",
       });
     } catch {
@@ -113,7 +137,11 @@ export default function MemoryMapSection() {
     }
 
     await applyImportedBatch(() =>
-      importMediaBatch(createLocalFileDescriptors(files), "Selected folder"),
+      importMediaBatch(
+        createLocalFileDescriptors(files),
+        "Selected folder",
+        importFilter,
+      ),
     );
     event.target.value = "";
   };
@@ -122,7 +150,7 @@ export default function MemoryMapSection() {
     setIsLoadingSamples(true);
     try {
       await applyImportedBatch(() =>
-        importMediaBatch(createBundledPicDescriptors(), "Bundled pic/"),
+        importMediaBatch(createBundledPicDescriptors(), "Bundled pic/", importFilter),
       );
     } finally {
       setIsLoadingSamples(false);
@@ -151,12 +179,80 @@ export default function MemoryMapSection() {
     <div className="panel-block memory-map-panel">
       <h2>Memories</h2>
 
+      <div className="memory-map-import-mode" role="group" aria-label="Import mode">
+        <button
+          type="button"
+          className={`memory-map-mode-btn${
+            importFilter.mode === "all" ? " is-active" : ""
+          }`}
+          onClick={() =>
+            setImportFilter((current) => ({ ...current, mode: "all" }))
+          }
+        >
+          All Images
+        </button>
+        <button
+          type="button"
+          className={`memory-map-mode-btn${
+            importFilter.mode === "date-range" ? " is-active" : ""
+          }`}
+          onClick={() =>
+            setImportFilter((current) => ({ ...current, mode: "date-range" }))
+          }
+        >
+          Date Range
+        </button>
+      </div>
+
+      {importFilter.mode === "date-range" ? (
+        <div className="memory-map-date-grid" lang="en">
+          <label>
+            Start Date
+            <input
+              type="date"
+              className="form-control-tall"
+              lang="en-CA"
+              title="Start date (YYYY-MM-DD)"
+              value={importFilter.startDate}
+              onChange={(event) =>
+                setImportFilter((current) => ({
+                  ...current,
+                  startDate: event.target.value,
+                }))
+              }
+            />
+          </label>
+          <label>
+            End Date
+            <input
+              type="date"
+              className="form-control-tall"
+              lang="en-CA"
+              title="End date (YYYY-MM-DD)"
+              value={importFilter.endDate}
+              onChange={(event) =>
+                setImportFilter((current) => ({
+                  ...current,
+                  endDate: event.target.value,
+                }))
+              }
+            />
+          </label>
+        </div>
+      ) : null}
+
+      <p className="memory-map-help">
+        {importFilter.mode === "date-range"
+          ? "Date filtering uses EXIF capture time. Images without capture time will be excluded."
+          : "Import all images from a folder, or switch to a date range before importing."}
+      </p>
+
       <div className="memory-map-actions">
         <button
           type="button"
           className="memory-map-btn"
           onClick={() => inputRef.current?.click()}
-          disabled={state.isImporting}
+          disabled={state.isImporting || !isDateRangeValid}
         >
           Import Folder
         </button>
@@ -164,7 +260,7 @@ export default function MemoryMapSection() {
           type="button"
           className="memory-map-btn"
           onClick={handleSampleImport}
-          disabled={state.isImporting || isLoadingSamples}
+          disabled={state.isImporting || isLoadingSamples || !isDateRangeValid}
         >
           {isLoadingSamples ? "Loading..." : "Load pic/"}
         </button>
@@ -203,20 +299,19 @@ export default function MemoryMapSection() {
           <p>
             {state.importSummary.sourceLabel}: {state.importSummary.importedCount} images
           </p>
+          <p>Filter: {state.importSummary.filterLabel}</p>
           <p>
             {state.importSummary.geotaggedCount} geotagged,{" "}
             {state.importSummary.missingLocationCount} without GPS
           </p>
+          {state.importSummary.filteredOutCount > 0 ? (
+            <p>{state.importSummary.filteredOutCount} excluded by date filter</p>
+          ) : null}
           {state.importSummary.skippedCount > 0 ? (
             <p>{state.importSummary.skippedCount} files skipped during import</p>
           ) : null}
         </div>
-      ) : (
-        <p className="memory-map-help">
-          Import a local folder or load the bundled `pic/` samples. Geotagged images
-          will be clustered and rendered on the current map.
-        </p>
-      )}
+      ) : null}
 
       <div className="memory-map-actions">
         <button
@@ -273,6 +368,9 @@ export default function MemoryMapSection() {
       ) : null}
 
       {state.importError ? <p className="error">{state.importError}</p> : null}
+      {!isDateRangeValid ? (
+        <p className="error">Choose a valid start and end date before importing.</p>
+      ) : null}
     </div>
   );
 }
